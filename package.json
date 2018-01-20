@@ -22,5 +22,8 @@
   },
   "jest": {
     "preset": "react-native"
+  },
+  "devDependencies": {
+    "reactotron-react-native": "^1.14.0"
   }
 }
