@@ -61,7 +61,7 @@ export default class Activities extends Component<{}> {
   _renderItem = ({item}) => {
     return <CardEvent item={item} nav={'activities'} />
   }
-  
+
   render(){
     return(
       <View style={styles.container}>
