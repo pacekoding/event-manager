@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { AppRegistry } from 'react-native';
 import App from './App';
+import './ReactotronConfig'
 
 import { ApolloClient } from 'apollo-client';
 import { ApolloProvider,graphql } from 'react-apollo';

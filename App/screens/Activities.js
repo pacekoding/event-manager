@@ -4,27 +4,31 @@ import {
   View,
   Text,
   Image,
+  Dimensions,
   RefreshControl
 } from 'react-native'
 import {
+  Card,
   Button,
-  Icon
+  Icon,
+  Divider
 } from 'react-native-elements'
 import {OptimizedFlatList} from 'react-native-optimized-flatlist'
 import {Actions} from 'react-native-router-flux'
 
-///data dummy
-import {events} from '../lib/dummy.js'
-
 //components
 import {AddButton, CardEvent} from '../components'
+///data dummy
+import {activities} from '../lib/dummy.js'
 
-export default class Home extends Component<{}> {
+const {height,width} = Dimensions.get('window')
+
+export default class Activities extends Component<{}> {
 
   constructor () {
     super()
     this.state = {
-      events: [],
+      activities: [],
       isFetching: false
     }
   }
@@ -35,12 +39,8 @@ export default class Home extends Component<{}> {
 
   fetchData () {
     setTimeout(() => {
-      this.setState({events, isFetching: false})
-    },1000)
-  }
-
-  _renderItem = ({item}) => {
-    return <CardEvent item={item} nav={'events'} />
+      this.setState({activities, isFetching: false})
+    },2000)
   }
 
   _onRefresh = () => {
@@ -58,13 +58,16 @@ export default class Home extends Component<{}> {
      />
   }
 
-
-  render () {
-    const {events, isFetching} = this.state
+  _renderItem = ({item}) => {
+    return <CardEvent item={item} nav={'activities'} />
+  }
+  
+  render(){
     return(
       <View style={styles.container}>
         <OptimizedFlatList
-          data={events}
+          style={{flex:1}}
+          data={activities}
           keyExtractor={(item, index) => index}
           renderItem={this._renderItem}
           refreshControl={this._refreshControl()}
@@ -76,9 +79,34 @@ export default class Home extends Component<{}> {
 }
 
 const styles = StyleSheet.create({
-  container:{
+  container: {
     flex:1,
-    backgroundColor:'#EEEEEE',
+    backgroundColor:'#f5f5f6',
     alignItems:'center'
+  },
+  cardButtonContainer: {
+    flex:1,
+    flexDirection:'row',
+    justifyContent:'space-around',
+    marginTop:'2%'
+  },
+  iconContainer: {
+    flex:1,
+    justifyContent:'center',
+  },
+  iconButton: {
+    marginLeft:'30%'
+  },
+  contentText: {
+    alignSelf:'center',
+    marginTop: 20,
+    marginBottom: 50,
+    fontSize:20,
+    fontWeight:'bold',
+    color:'#000000',
+  },
+  dateText:{
+    padding: 5,
+    color:'#616161'
   }
 })

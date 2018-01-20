@@ -13,7 +13,7 @@ import Setting from './screens/Setting'
 
 import AddEvent from './screens/AddEvent'
 import Summary from './screens/Summary'
-import Activity from './screens/Activity'
+import Activities from './screens/Activities'
 
 import TabIcon from './components/TabIcon'
 
@@ -84,7 +84,7 @@ const App  = () => {
               <Scene key='managementTab2' tabBarLabel='Activities'>
                 <Scene
                   key='activities'
-                  component={Activity}
+                  component={Activities}
                 />
               </Scene>
 
