@@ -15,6 +15,7 @@ import {
 } from 'react-native-elements'
 import {OptimizedFlatList} from 'react-native-optimized-flatlist'
 import {Actions} from 'react-native-router-flux'
+import Modal from "react-native-modal"
 
 //components
 import {AddButton, CardEvent} from '../components'
@@ -29,7 +30,10 @@ export default class Activities extends Component<{}> {
     super()
     this.state = {
       activities: [],
-      isFetching: false
+      isFetching: false,
+      formEdit: {
+        phone:'',
+      }
     }
   }
 
@@ -63,6 +67,9 @@ export default class Activities extends Component<{}> {
   }
 
   render(){
+
+    const {formEdit} = this.state
+
     return(
       <View style={styles.container}>
         <OptimizedFlatList
@@ -73,6 +80,14 @@ export default class Activities extends Component<{}> {
           refreshControl={this._refreshControl()}
         />
         <AddButton />
+        <Modal isVisible={false}>
+          <View style={styles.modalBody}>
+             <Button
+              title='BUTTON'
+              backgroundColor={'#2962FF'}
+              />
+          </View>
+        </Modal>
       </View>
     )
   }
@@ -84,29 +99,11 @@ const styles = StyleSheet.create({
     backgroundColor:'#f5f5f6',
     alignItems:'center'
   },
-  cardButtonContainer: {
-    flex:1,
-    flexDirection:'row',
-    justifyContent:'space-around',
-    marginTop:'2%'
-  },
-  iconContainer: {
-    flex:1,
-    justifyContent:'center',
-  },
-  iconButton: {
-    marginLeft:'30%'
-  },
-  contentText: {
-    alignSelf:'center',
-    marginTop: 20,
-    marginBottom: 50,
-    fontSize:20,
-    fontWeight:'bold',
-    color:'#000000',
-  },
-  dateText:{
-    padding: 5,
-    color:'#616161'
+  modalBody: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF'
   }
 })

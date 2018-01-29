@@ -1,8 +1,10 @@
 import React, {Component} from 'react'
 import {
   View,
+  ScrollView,
   StyleSheet,
-  BackHandler
+  BackHandler,
+  Text
 } from 'react-native'
 import {
   Button,
@@ -11,17 +13,13 @@ import {
   FormValidationMessage
 } from 'react-native-elements'
 import {Actions} from 'react-native-router-flux'
+import TextInput from 'react-native-material-textinput'
 
 export default class AddEvent extends Component <{}> {
   constructor(){
     super()
     this.state = {
-      title:'',
-      content: '',
-      dueDate: '',
-      isEmptyTitle:'',
-      isEmptyContent:'',
-      isEmptyDueDate:'',
+      name: ''
     }
   }
 
@@ -69,43 +67,22 @@ export default class AddEvent extends Component <{}> {
     const {
       isEmptyTitle,
       isEmptyContent,
-      isEmptyDueDate
+      isEmptyDueDate,
+      name
     } = this.state
 
     return (
-      <View style={styles.container}>
-
-      <View style={styles.formLogin}>
-
-        <FormLabel>Title</FormLabel>
-        <FormInput
-          placeholder={'Title'}
-          shake ={isEmptyTitle}
-          onChangeText={value => this.handleChange('title',value)}/>
-        <FormValidationMessage>{isEmptyTitle ? 'Enter an Email' : ''}</FormValidationMessage>
-
-        <FormLabel>Content</FormLabel>
-        <FormInput
-          placeholder={'Content'}
-          shake ={isEmptyContent} onChangeText={value => this.handleChange('content',value)}/>
-        <FormValidationMessage>{isEmptyContent ? 'Enter a password' : ''}</FormValidationMessage>
-
-        <FormLabel>Event Date</FormLabel>
-        <FormInput
-          placeholder={'Event Date'}
-          shake ={isEmptyDueDate} onChangeText={value => this.handleChange('content',value)}/>
-        <FormValidationMessage>{isEmptyDueDate ? 'Enter a password' : ''}</FormValidationMessage>
-
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <Button
-          raised
-          icon={{name: 'send', type:'material-community'}}
-          buttonStyle={styles.buttonLogin}
-          onPress={this.handlePress}/>
-      </View>
-      </View>
+      <ScrollView scrollEnabled ={true} contentContainerStyle={styles.container}>
+        <View><Text>asdf</Text></View>
+        <View><Text>asdf</Text></View>
+        <View><Text>asdf</Text></View>
+        <View><Text>asdf</Text></View>
+        <View><Text>asdf</Text></View>
+        <View><Text>asdf</Text></View>
+        <View><Text>asdf</Text></View>
+        <View><Text>asdf</Text></View>
+        <View><Text>asdf</Text></View>
+      </ScrollView>
     );
   }
 }
@@ -114,20 +91,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection:'column',
+    justifyContent:'flex-start',
     backgroundColor: '#F5FCFF',
+    padding:15,
+
   },
-  formLogin: {
+  formContainer: {
     flex:1,
+    padding:15,
     flexDirection:'column',
-    justifyContent:'center'
+    justifyContent:'flex-start',
   },
   buttonContainer: {
     flex:1,
     justifyContent:'flex-start',
   },
-  buttonLogin: {
+  buttonSubmit: {
     backgroundColor:'#0091EA',
-    width:'50%',
-    alignSelf:'center'
+    bottom:10,
   }
 });

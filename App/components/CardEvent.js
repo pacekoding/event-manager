@@ -3,7 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
-  Image
+  Image,
+  Dimensions
 } from 'react-native'
 import {Actions} from 'react-native-router-flux'
 import {
@@ -12,8 +13,11 @@ import {
   Divider
 } from 'react-native-elements'
 
+const {width, height} = Dimensions.get('window')
+const imageWidth = width - width * 0.1
+const imageHeight = width - width * 0.1
+
 const CardEvent = ({item,nav}) => {
-  console.log(nav);
   if(nav === 'events') {
     const {
       image,
@@ -27,11 +31,7 @@ const CardEvent = ({item,nav}) => {
       <Card
         title='Event Test'
         containerStyle={{flex:1}}
-        imageStyle={{
-          alignSelf: 'center',
-          height: 200,
-          width: 330,
-        }}
+        imageStyle={styles.imageStyle}
         image={{uri:image}}>
           <Text style={styles.contentText}>
             {content}
@@ -103,17 +103,13 @@ const CardEvent = ({item,nav}) => {
         title={type}
         titleStyle={{fontSize:25, color:titleColor}}
         containerStyle={{flex:1}}
-        imageStyle={{
-          alignSelf: 'center',
-          height: 200,
-          width: 330,
-        }}
+        imageStyle={image ? styles.imageStyle : styles.emptyImageStyle}
         image={{uri:image}}>
-        <Text style={styles.contentText}>
+        <Text style={styles.activityContentText}>
           {`Rp.${total},00`}
         </Text>
 
-        <View style={{flex:1,flexDirection:'row',}}>
+        <View style={styles.detailContentText}>
           <Icon
             name={iconName}
             type='material-community'
@@ -123,7 +119,7 @@ const CardEvent = ({item,nav}) => {
           <Text style={styles.dateText}>{detail}</Text>
         </View>
 
-        <View style={{flex:1,flexDirection:'row'}}>
+        <View style={styles.detailContentText}>
           <Icon
             name='group-work'
             type='material-icons'
@@ -132,7 +128,7 @@ const CardEvent = ({item,nav}) => {
             />
           <Text style={styles.dateText}>{group}</Text>
         </View>
-        <View style={{flex:1,flexDirection:'row'}}>
+        <View style={styles.detailContentText}>
           <Icon
             name='calendar'
             type='material-community'
@@ -176,37 +172,59 @@ const CardEvent = ({item,nav}) => {
 
 const styles = StyleSheet.create({
   cardButtonContainer: {
-    flex:1,
-    flexDirection:'row',
-    marginTop:'2%'
+    flex: 1,
+    flexDirection: 'row',
+    marginTop: '2%'
   },
   iconContainer: {
-    flex:1,
-    justifyContent:'center',
+    flex: 1,
+    justifyContent: 'center',
   },
   iconButton: {
-    marginLeft:'30%'
+    marginLeft: '30%'
   },
   contentText: {
     marginBottom: 10,
-    color:'#000000',
-    backgroundColor:'#FAFAFA'
+    color: '#000000',
+    backgroundColor: '#FAFAFA'
+  },
+  activityContentText: {
+    marginBottom: 10,
+    color: '#000000',
+    fontSize: 15,
+    fontWeight: 'bold'
+  },
+  detailContentText: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: '#FAFAFA'
   },
   dueDateText:{
     padding: 5
   },
   contentTextActivities: {
-    alignSelf:'center',
+    alignSelf: 'center',
     marginTop: 20,
     marginBottom: 50,
-    fontSize:20,
-    fontWeight:'bold',
-    color:'#000000',
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000000',
   },
-  dateText:{
+  dateText: {
     padding: 5,
-    color:'#616161'
+    color: '#616161'
+  },
+  imageStyle: {
+    alignSelf: 'center',
+    height: imageHeight,
+    width: imageWidth,
+  },
+  emptyImageStyle: {
+    alignSelf: 'center',
+    height: 0,
+    width: imageWidth,
   }
+
 })
 
 export default CardEvent

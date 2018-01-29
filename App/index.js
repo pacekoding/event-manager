@@ -42,7 +42,9 @@ const App  = () => {
             <Scene key='homeTab1' title='MY EVENT'>
               <Scene
                 key='event'
-                component={Home}
+                hideNavBar={true}
+                hideTabBar={true}
+                component={AddEvent}
               />
             </Scene>
 
