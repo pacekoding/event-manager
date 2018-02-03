@@ -36,7 +36,7 @@ export default class Login extends Component<{}> {
 
   sendRequest = () => {
     const { isEmptyEmail, isEmptyPassword } = this.state
-    if(!isEmptyEmail || !isEmptyPassword) Actions.tabBar()
+    return (!isEmptyEmail || !isEmptyPassword) && Actions.tabBar()
   }
 
   render() {
@@ -51,11 +51,12 @@ export default class Login extends Component<{}> {
           placeholder={'Please enter your email...'}
           shake ={isEmptyEmail}
           onChangeText={value => this.handleChange('email',value)}/>
-        <FormValidationMessage>{isEmptyEmail ? 'Enter an Email' : ''}</FormValidationMessage>
+        <FormValidationMessage>{isEmptyEmail ? 'Enter an email' : ''}</FormValidationMessage>
 
         <FormLabel>Password</FormLabel>
         <FormInput
           placeholder={'Please enter your password...'}
+          secureTextEntry={true}
           shake ={isEmptyPassword} onChangeText={value => this.handleChange('password',value)}/>
         <FormValidationMessage>{isEmptyPassword ? 'Enter a password' : ''}</FormValidationMessage>
 
@@ -64,7 +65,7 @@ export default class Login extends Component<{}> {
       <View style={styles.buttonContainer}>
         <Button
           raised
-          icon={{name: 'login', type:'material-community'}}
+          title='Log in'
           buttonStyle={styles.buttonLogin}
           onPress={this.handlePress} />
       </View>
@@ -77,6 +78,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection:'column',
+    justifyContent:'space-around',
     backgroundColor: '#F5FCFF',
   },
   formLogin: {
@@ -86,9 +88,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flex:1,
-    width:'50%',
     justifyContent:'flex-start',
-    alignItems:'center'
   },
   buttonLogin: {
     backgroundColor:'#2196F3'

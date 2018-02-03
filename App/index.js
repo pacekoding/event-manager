@@ -25,7 +25,9 @@ const App  = () => {
 
         <Scene key='login'
           hideNavBar
-          component={Login}/>
+          component={Login}
+          // initial
+          />
 
           <Tabs key='tabBar'
             activeTintColor={themeStyle}
@@ -35,16 +37,16 @@ const App  = () => {
             showLabel={false}
             animationEnabled={false}
             swipeEnabled={false}
-            hideNavBar
             initial
+            hideNavBar
             icon={TabIcon}>
 
             <Scene key='homeTab1' title='MY EVENT'>
               <Scene
                 key='event'
-                hideNavBar={true}
+                hideNavBar={false}
                 hideTabBar={true}
-                component={AddEvent}
+                component={Summary}
               />
             </Scene>
 
@@ -120,7 +122,9 @@ const App  = () => {
         <Scene
           key="modalAdd"
           direction="vertical"
-          title="Modal"
+          title="Add"
+          navigationBarStyle={{backgroundColor:themeStyle}}
+          titleStyle={{color:'#FFFFFF'}}
           component={AddEvent}
         />
 

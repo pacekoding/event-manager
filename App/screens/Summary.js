@@ -3,13 +3,17 @@ import {
   StyleSheet,
   View,
   Text,
-  processColor
+  processColor,
+  Dimensions,
 } from 'react-native'
 import {
   Icon,
   Button,
 } from 'react-native-elements'
 import {LineChart} from 'react-native-charts-wrapper';
+import { Dropdown } from 'react-native-material-dropdown';
+
+const {width} = Dimensions.get('window')
 
 export default class Summary extends Component<{}> {
 
@@ -24,11 +28,11 @@ export default class Summary extends Component<{}> {
             lineWidth: 2,
             drawCubicIntensity: 1,
             circleRadius: 5,
-            circleColor: processColor('#2979FF'),
+            circleColor: processColor('#448AFF'),
             drawHighlightIndicators: false,
-            color: processColor('#2979FF'),
+            color: processColor('#448AFF'),
             drawFilled: true,
-            fillColor: processColor('#2979FF'),
+            fillColor: processColor('#448AFF'),
             fillAlpha: 100,
             drawValues:false
           }
@@ -62,8 +66,38 @@ export default class Summary extends Component<{}> {
        digits: 0,
        markerColor: processColor('#00B8D4'),
        textColor: processColor('white'),
-     }
+     },
+     language:'test'
    }
+   this.year = [{
+     value: '2018',
+   },]
+
+   this.month = [{
+     value: 'January',
+   }, {
+     value: 'February',
+   },  {
+     value: 'Maret',
+   },  {
+     value: 'April',
+   },  {
+     value: 'May',
+   },  {
+     value: 'June',
+   },  {
+     value: 'July',
+   },  {
+     value: 'August',
+   },  {
+     value: 'September',
+   },  {
+     value: 'Oktober',
+   },  {
+     value: 'November',
+   }, {
+     value: 'Desember',
+   },]
  }
 
 
@@ -72,62 +106,37 @@ export default class Summary extends Component<{}> {
   }
 
   render() {
+
     return (
       <View style={styles.container}>
-
         <View style={styles.containerSelect}>
-          <View style={styles.selectedYear}>
-            <Icon
-              name='chevron-left'
-              type='entypo'
-              color='#FFFFFF'
-              underlayColor='#79adfc'
-              size={26}
-              containerStyle={styles.iconContainer}
-              onPress={() => console.log('hello')} />
-              <Button
-              backgroundColor={'transparent'}
-              fontSize={16}
-              containerViewStyle={{width:'50%'}}
-              fontWeight={'bold'}
-              title='2018' />
-            <Icon
-              name='chevron-right'
-              type='entypo'
-              color='#FFFFFF'
-              underlayColor='#79adfc'
-              size={26}
-              containerStyle={styles.iconContainer}
-              onPress={() => console.log('hello')} />
-          </View>
-          <View style={styles.selectedMonth}>
-            <Icon
-              name='chevron-left'
-              type='entypo'
-              color='#FFFFFF'
-              underlayColor='#79adfc'
-              size={26}
-              containerStyle={styles.iconContainer}
-              onPress={() => console.log('hello')} />
-              <Button
-              backgroundColor={'transparent'}
-              fontSize={16}
-              containerViewStyle={{width:'50%'}}
-              fontWeight={'bold'}
-              title='January' />
-            <Icon
-              name='chevron-right'
-              type='entypo'
-              color='#FFFFFF'
-              underlayColor='#79adfc'
-              size={26}
-              containerStyle={styles.iconContainer}
-              onPress={() => console.log('hello')} />
-          </View>
+          <Dropdown
+            containerStyle={styles.selectedYear}
+            pickerStyle={[styles.pickerStyle,{marginLeft:5}]}
+            label='Year'
+            value={'2018'}
+            fontSize={18}
+            dropdownPosition={this.year.length > 3 ? -5 : -2}
+            data={this.year}
+          />
+          <Dropdown
+            containerStyle={styles.selectedMonth}
+            label='Month'
+            value={'February'}
+            pickerStyle={styles.pickerStyle}
+            fontSize={18}
+            dropdownPosition={-5}
+            data={this.month}
+          />
         </View>
-
         <View style={styles.containerChart}>
-          <View style={styles.chartTitle}><Text style={styles.titleText}>Balance Charts</Text></View>
+          <View style={styles.chartTitle}>
+            <Text style={styles.titleText}>6 Weeks</Text>
+            <View>
+              <Text style={styles.titleDigitsText}>Balance</Text>
+              <Text style={styles.digitsText}>Rp. 9.000.000</Text>
+            </View>
+          </View>
           <LineChart
             style={styles.chart}
             data={this.state.data}
@@ -139,7 +148,6 @@ export default class Summary extends Component<{}> {
             borderColor={processColor('teal')}
             borderWidth={1}
             drawBorders={false}
-
             touchEnabled={true}
             dragEnabled={true}
             scaleEnabled={true}
@@ -147,10 +155,8 @@ export default class Summary extends Component<{}> {
             scaleYEnabled={false}
             pinchZoom={false}
             doubleTapToZoomEnabled={false}
-
             dragDecelerationEnabled={true}
             dragDecelerationFrictionCoef={1}
-
             keepPositionOnRotation={false}
             onSelect={this.handleSelect.bind(this)}
             onChange={(event) => console.log(event.nativeEvent)}
@@ -169,56 +175,65 @@ const styles = StyleSheet.create({
     backgroundColor:'#EEEEEE',
   },
   containerSelect: {
-    flex:1,
+    flex: 1,
+    justifyContent: 'space-between',
     flexDirection:'row',
-    justifyContent:'space-around',
-    padding:10,
+    backgroundColor:'#FFFFFF',
+    padding:5,
+    marginLeft: 10,
+    marginRight: 10,
+    marginTop: 10,
+    // marginBottom:5,
+    borderRadius: 3
   },
   selectedYear: {
-    flex: 1.5,
-    backgroundColor: '#F5FCFF',
-    borderRadius:5,
-    flexDirection:'row',
-    justifyContent:'space-around',
-    alignItems:'center',
-    backgroundColor:'#448AFF',
-    marginRight:5
+    flex: 1,
+    marginLeft: 5,
+    marginRight: 5
   },
   selectedMonth: {
-    flex: 2,
-    backgroundColor: '#F5FCFF',
-    borderRadius:5,
-    flexDirection:'row',
-    justifyContent:'space-around',
-    alignItems:'center',
-    backgroundColor:'#448AFF',
-    marginLeft:5
+    flex: 1,
+    marginLeft: 5,
+    marginRight: 5
   },
-  selectedText: {
-    color:'#FFFFFF',
-    fontSize:15,
-    fontWeight:'bold'
-  },
-  iconContainer: {
-    width:'25%',
-    height:'100%',
+  pickerStyle: {
+    width: width/2.2,
+    marginLeft:15
   },
   containerChart: {
-    flex: 8,
-    backgroundColor: '#F5FCFF',
+    flex: 5,
+    backgroundColor: '#FFFFFF',
     padding:10,
-    margin:10,
-    borderRadius:5
+    marginLeft: 10,
+    marginRight: 10,
+    marginBottom: 10,
+    // marginTop:5,
+    borderRadius:3
   },
   chartTitle: {
-    justifyContent:'center',
-    alignItems:'center',
+    flexDirection:'row',
+    justifyContent:'space-between',
+    marginBottom:20
   },
   titleText: {
     fontSize:15,
-    fontWeight:'bold'
+    fontWeight:'bold',
+    color:'#757575',
+  },
+  titleDigitsText: {
+    fontSize:10,
+    color:'#9E9E9E',
+    fontWeight:'bold',
+    alignSelf:'flex-end',
+  },
+  digitsText: {
+    fontSize:17,
+    fontWeight:'bold',
+    color:'#263238'
   },
   chart: {
-    flex: 1
+    flex: 1,
+    backgroundColor: '#E3F2FD',
+    borderRadius:5
   }
 });
