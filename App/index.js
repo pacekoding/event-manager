@@ -45,8 +45,8 @@ const App  = () => {
               <Scene
                 key='event'
                 hideNavBar={false}
-                hideTabBar={true}
-                component={Summary}
+                hideTabBar={false}
+                component={Home}
               />
             </Scene>
 
@@ -78,12 +78,12 @@ const App  = () => {
               tabBarPosition={'top'}
               >
 
-              <Scene key='managementTab1' tabBarLabel='Summary'>
+              {/*<Scene key='managementTab1' tabBarLabel='Summary'>
                 <Scene
                   key='summary'
                   component={Summary}
                 />
-              </Scene>
+              </Scene>*/}
 
               <Scene key='managementTab2' tabBarLabel='Activities'>
                 <Scene
@@ -95,7 +95,7 @@ const App  = () => {
               <Scene key='managementTab3' tabBarLabel='report'>
                 <Scene
                   key='Test3'
-                  component={Test}
+                  component={Summary}
                 />
               </Scene>
 

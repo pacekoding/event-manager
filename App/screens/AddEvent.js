@@ -178,7 +178,7 @@ export default class AddEvent extends Component<{}> {
             <View style={styles.modalKeluhanContentContainer}>
 
               <View style={styles.modalKeluhanTitle}>
-                <Text style={styles.modalKeluhanTitleFont}>Pilih gambar</Text>
+                <Text style={styles.modalKeluhanTitleFont}>Choose Pictures</Text>
               </View>
 
               <View style={styles.modalPilih}>

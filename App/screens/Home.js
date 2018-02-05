@@ -25,6 +25,7 @@ export default class Home extends Component<{}> {
     super()
     this.state = {
       events: [],
+      value: 0,
       isFetching: false
     }
   }
@@ -58,6 +59,10 @@ export default class Home extends Component<{}> {
      />
   }
 
+  handleScroll = (event) => {
+    this.setState({value:event.nativeEvent.contentOffset.y})
+  }
+
 
   render () {
     const {events, isFetching} = this.state
@@ -68,8 +73,9 @@ export default class Home extends Component<{}> {
           keyExtractor={(item, index) => index}
           renderItem={this._renderItem}
           refreshControl={this._refreshControl()}
+          onScroll={this.handleScroll}
         />
-        <AddButton />
+        <AddButton value={this.state.value} />
       </View>
     )
   }
@@ -79,6 +85,6 @@ const styles = StyleSheet.create({
   container:{
     flex:1,
     backgroundColor:'#EEEEEE',
-    alignItems:'center'
+    // alignItems:'center'
   }
 })

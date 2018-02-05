@@ -15,7 +15,7 @@ import {
 } from 'react-native-elements'
 import {OptimizedFlatList} from 'react-native-optimized-flatlist'
 import {Actions} from 'react-native-router-flux'
-import Modal from "react-native-modal"
+// import Modal from "react-native-modal"
 
 //components
 import {AddButton, CardEvent} from '../components'
@@ -80,14 +80,6 @@ export default class Activities extends Component<{}> {
           refreshControl={this._refreshControl()}
         />
         <AddButton />
-        <Modal isVisible={false}>
-          <View style={styles.modalBody}>
-             <Button
-              title='BUTTON'
-              backgroundColor={'#2962FF'}
-              />
-          </View>
-        </Modal>
       </View>
     )
   }
@@ -97,13 +89,12 @@ const styles = StyleSheet.create({
   container: {
     flex:1,
     backgroundColor:'#f5f5f6',
-    alignItems:'center'
   },
-  modalBody: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF'
-  }
+  // modalBody: {
+  //   flex: 1,
+  //   flexDirection: 'column',
+  //   justifyContent: 'space-between',
+  //   alignItems: 'center',
+  //   backgroundColor: '#FFFFFF'
+  // }
 })
