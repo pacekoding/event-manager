@@ -6,6 +6,7 @@ import themeStyle from './config/style'
 
 import Login from './screens/Login'
 import Home from './screens/Home'
+import Invite from './screens/Invite'
 import Test from './screens/Test'
 import Profile from './screens/Profile'
 import Forum from './screens/Forum'
@@ -52,8 +53,8 @@ const App  = () => {
 
             <Scene key='homeTab2' title='MY TASK'>
               <Scene
-                key='tast'
-                component={Test}
+                key='invite'
+                component={Invite}
               />
             </Scene>
 
@@ -77,13 +78,6 @@ const App  = () => {
               labelStyle={{fontSize:10,fontWeight:'bold'}}
               tabBarPosition={'top'}
               >
-
-              {/*<Scene key='managementTab1' tabBarLabel='Summary'>
-                <Scene
-                  key='summary'
-                  component={Summary}
-                />
-              </Scene>*/}
 
               <Scene key='managementTab2' tabBarLabel='Activities'>
                 <Scene

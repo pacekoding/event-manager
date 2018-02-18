@@ -180,11 +180,9 @@ const styles = StyleSheet.create({
     flexDirection:'row',
     backgroundColor:'#FFFFFF',
     padding:5,
-    marginLeft: 10,
-    marginRight: 10,
-    marginTop: 10,
-    // marginBottom:5,
-    borderRadius: 3
+    marginLeft: 5,
+    marginRight: 5,
+    marginTop: 5
   },
   selectedYear: {
     flex: 1,
@@ -203,12 +201,10 @@ const styles = StyleSheet.create({
   containerChart: {
     flex: 5,
     backgroundColor: '#FFFFFF',
-    padding:10,
-    marginLeft: 10,
-    marginRight: 10,
-    marginBottom: 10,
-    // marginTop:5,
-    borderRadius:3
+    padding:5,
+    marginLeft: 5,
+    marginRight: 5,
+    marginBottom: 5,
   },
   chartTitle: {
     flexDirection:'row',

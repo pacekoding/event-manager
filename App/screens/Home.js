@@ -12,14 +12,16 @@ import {
 } from 'react-native-elements'
 import {OptimizedFlatList} from 'react-native-optimized-flatlist'
 import {Actions} from 'react-native-router-flux'
-
 ///data dummy
 import {events} from '../lib/dummy.js'
 
 //components
 import {AddButton, CardEvent} from '../components'
 
-export default class Home extends Component<{}> {
+import { graphql } from 'react-apollo';
+import gql from 'graphql-tag';
+
+class Home extends Component<{}> {
 
   constructor () {
     super()
@@ -31,6 +33,7 @@ export default class Home extends Component<{}> {
   }
 
   componentDidMount () {
+
     this.fetchData()
   }
 
@@ -63,7 +66,6 @@ export default class Home extends Component<{}> {
     this.setState({value:event.nativeEvent.contentOffset.y})
   }
 
-
   render () {
     const {events, isFetching} = this.state
     return(
@@ -81,10 +83,28 @@ export default class Home extends Component<{}> {
   }
 }
 
+const Events = gql`
+  query Events {
+    forums {
+      id
+      title
+      content
+      pictures {
+        id
+        path
+      }
+    }
+  }
+`;
+
+// export default graphql(Events)(Home);
+export default Home
+
+
+
 const styles = StyleSheet.create({
   container:{
     flex:1,
-    backgroundColor:'#EEEEEE',
-    // alignItems:'center'
+    backgroundColor:'#EEEEEE'
   }
 })

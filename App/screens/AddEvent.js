@@ -14,13 +14,17 @@ import {
   Image,
   Button
 } from 'react-native'
+import DateTimePicker from 'react-native-modal-datetime-picker'
 import { Icon } from 'react-native-elements'
 import { Actions } from 'react-native-router-flux'
 import * as Crop from 'react-native-image-crop-picker'
+import { graphql } from 'react-apollo'
+import gql from 'graphql-tag'
+import moment from 'moment'
 
 let {width,height} = Dimensions.get('window')
 
-export default class AddEvent extends Component<{}> {
+class AddEvent extends Component<{}> {
 
   constructor(){
     super()
@@ -29,6 +33,9 @@ export default class AddEvent extends Component<{}> {
       tempPictures: [],
       title: '',
       description: '',
+      isDateTimePickerVisible: false,
+      date: new Date(),
+      dateText: '',
       showModal: false
    }
   }
@@ -82,6 +89,29 @@ export default class AddEvent extends Component<{}> {
       this.handleModal()
     }
   }
+
+  handleAdd = async () => {
+    // const { submit } = this.props
+    // const new_forum = {
+    //   title:"this",
+    //   content:"that",
+    //   UserId:"jcd7caw7",
+    //   picturePath:"https://image.freepik.com/free-photo/cute-cat-picture_1122-449.jpg",
+    //   eventDate:"12 august 2012"
+    // }
+    //
+    // const res = await submit({ new_forum })
+    //  console.log('add data',res.data);
+  }
+
+  _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true });
+
+  _hideDateTimePicker = () => this.setState({ isDateTimePickerVisible: false });
+
+  _handleDatePicked = (date) => {
+    this.setState({ date,dateText: moment(date).format('LL') })
+    this._hideDateTimePicker();
+  };
 
   render() {
     return (
@@ -160,9 +190,30 @@ export default class AddEvent extends Component<{}> {
             </View>
 
             <View style={styles.line} />
+
+            <View style={styles.formEvent}>
+              <Icon
+                name='date-range'
+                type='material-icons'
+                color='#4fc3f7'
+                size={24}
+              />
+              <TouchableOpacity onPress={this._showDateTimePicker}>
+                <Text style={[styles.dateInput,{color: this.state.dateText ? '#000000' : '#A2A2A2'}]}>{this.state.dateText || 'Date'}</Text>
+              </TouchableOpacity>
+              <DateTimePicker
+                isVisible={this.state.isDateTimePickerVisible}
+                onConfirm={this._handleDatePicked}
+                onCancel={this._hideDateTimePicker}
+                date={this.state.date}
+                minimumDate={new Date()}
+              />
+            </View>
+
+            <View style={styles.line} />
           </ScrollView>
 
-          <TouchableOpacity style={styles.buttonAdd} onPress={this._onPressButton}>
+          <TouchableOpacity style={styles.buttonAdd} onPress={this.handleAdd}>
             <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>ADD</Text>
           </TouchableOpacity>
 
@@ -280,6 +331,12 @@ const styles = StyleSheet.create({
       paddingTop: 12,
       fontFamily: 'BrandonText-LightItalic'
     },
+    dateInput: {
+      fontSize: 16,
+      alignItems: 'center',
+      fontFamily: 'BrandonText-LightItalic',
+      marginLeft:16
+    },
     modalKeluhanContainer: {
       flex: 1,
       justifyContent: 'center',
@@ -363,3 +420,30 @@ const styles = StyleSheet.create({
       backgroundColor: '#2196F3',
     }
 })
+
+const AddMutation = gql`
+  mutation addForum($new_forum: Event!) {
+    addForum(forum: $new_forum) {
+      ok
+      forum{
+        id
+        eventDate
+        title
+        content
+      }
+      errors {
+        message
+      }
+    }
+  }
+`;
+
+// export default graphql(AddMutation, {
+//   props: ({mutate}) => ({
+//     submit: (new_forum) => mutate({
+//       variables: { ...new_forum }
+//     })
+//   })
+// })(AddEvent)
+
+export default AddEvent

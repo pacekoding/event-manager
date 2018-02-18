@@ -21,13 +21,9 @@ const imageHeight = width - width * 0.1
 
 const CardEvent = ({item,nav}) => {
   if(nav === 'events') {
-    const {
-      title,
-      images,
-      content,
-      dueDate
-    } = item
+    const {title,pictures,content,dueDate} = item
 
+    // dueDate = 20
     const dueDateText = dueDate <= 100 && `${dueDate} days left!`
     const dueDateColor = dueDate > 7 ? '#00C853' : dueDate > 3 ? '#F57C00' : '#D50000'
 
@@ -44,7 +40,7 @@ const CardEvent = ({item,nav}) => {
             size={20}
             onPress={() => Actions.setting()} />
           {
-            images.length !== 0 &&
+            pictures.length !== 0 &&
               <Swiper
                 loop={false}
                 dot={
@@ -68,9 +64,9 @@ const CardEvent = ({item,nav}) => {
                       marginTop: 6,
                       marginBottom: 0}} />}
                 >
-                { images.map((item, index) => (
+                { pictures.map((item, index) => (
                   <View style={styles.slide} key={index}>
-                    <Image source={{uri: item}} style={styles.imageEvent} />
+                    <Image source={{uri: item.path}} style={styles.imageEvent} />
                   </View>
                 ))}
               </Swiper>
@@ -93,12 +89,11 @@ const CardEvent = ({item,nav}) => {
         </View>
         <View style={styles.line} />
         <View style={styles.cardButtonContainer}>
-          <TouchableOpacity style={styles.optionContainer} onPress={() => Actions.management()} >
-            <Text style={[styles.optionText],{color: '#00C853'}}>Management</Text>
-          </TouchableOpacity>
-
           <TouchableOpacity style={styles.optionContainer} onPress={() => Actions.forum()} >
-            <Text style={[styles.optionText],{color: '#2962FF'}}>Forum</Text>
+            <Text style={[styles.optionText,{color: '#2962FF'}]}>Forum</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.optionContainer} onPress={() => Actions.management()} >
+            <Text style={[styles.optionText,{color: '#00C853'}]}>Management</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -220,21 +215,22 @@ const CardEvent = ({item,nav}) => {
 
 const styles = StyleSheet.create({
   container: {
-    height:450,
-    marginTop: 2.5,
-    marginLeft: 5,
-    marginRight: 5,
-    marginBottom: 2.5,
+    height: 450,
+    marginTop: 5,
+    marginBottom: 5,
+    marginLeft: 10,
+    marginRight: 10,
+    borderRadius:2,
     backgroundColor: '#FAFAFA',
     shadowColor: '#000000',
-    shadowOpacity: 0.5,
-    shadowRadius: 3,
+    shadowOpacity: 1.0,
+    shadowRadius: 4,
     shadowOffset: {
       height: 2,
       width: 2
     },
     zIndex: 99,
-    elevation: 2
+    elevation: 3
   },
   headerContainer: {
     height : 60,
@@ -246,7 +242,7 @@ const styles = StyleSheet.create({
     elevation:1
   },
   headerText: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
   },
   swiperContainer: {
@@ -260,7 +256,9 @@ const styles = StyleSheet.create({
   imageEvent: {
     width: '100%',
     height: 'auto',
-    alignItems: 'stretch'
+    alignItems: 'stretch',
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2
   },
   dateIcon: {
     justifyContent: 'center',
@@ -323,7 +321,7 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#757575',
+    color: '#212121',
     marginBottom: 5
   },
   descriptionText: {
@@ -346,7 +344,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   optionText: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold'
   },
   totalContainer: {

@@ -1,22 +1,22 @@
 const events = [
   {
     title: 'Happy New year',
-    images:[
-      'http://harboursideplace.com/wp-content/uploads/2014/09/Harbourside-Place-Events-feature-New-Year-New-Downtown.jpg',
-      'https://www.eventbriz.com/wp-content/uploads/2017/09/NOWLIVE.jpg',
+    pictures:[
+      { path: 'http://harboursideplace.com/wp-content/uploads/2014/09/Harbourside-Place-Events-feature-New-Year-New-Downtown.jpg'},
+      { path: 'https://www.eventbriz.com/wp-content/uploads/2017/09/NOWLIVE.jpg'},
     ],
     content:`London is one of the best places in the world to be for New Year celebrations. Fact. Never one to miss out on a party, the capital is fully prepared with loads of New Year's Eve parties and events up its sparkly sleeve.`,
     dueDate:20
   },
   {
     title: 'Music Concert',
-    images:['https://www.eventbriz.com/wp-content/uploads/2017/09/NOWLIVE.jpg'],
+    pictures:[{path:'https://www.eventbriz.com/wp-content/uploads/2017/09/NOWLIVE.jpg'}],
     content:`The Event Music Company provides fine Yorkshire Wedding Music. Trio Vivo, Chris Hilton's Little Big Band, The Groves String Quartet.`,
     dueDate:3
   },
   {
     title: 'TalkShow',
-    images:['https://www.newstatesman.com/sites/all/themes/creative-responsive-theme/images/new_statesman_events.jpg'],
+    pictures:[{path:'https://www.newstatesman.com/sites/all/themes/creative-responsive-theme/images/new_statesman_events.jpg'}],
     content:'Social Media Marketing Educator Sabrina Kizzie is a digital marketing specialist and blogger who pens the popular SabrinaOnFood.com blog joins Enterprise Radio to discuss best practices for restaurants on instagram.',
     dueDate:7
   },
