@@ -11,7 +11,6 @@ import {
   Icon
 } from 'react-native-elements'
 import {OptimizedFlatList} from 'react-native-optimized-flatlist'
-import {Actions} from 'react-native-router-flux'
 ///data dummy
 import {events} from '../lib/dummy.js'
 
@@ -23,7 +22,7 @@ import gql from 'graphql-tag';
 
 class Home extends Component<{}> {
 
-  constructor () {
+  constructor (props) {
     super()
     this.state = {
       events: [],
@@ -33,18 +32,28 @@ class Home extends Component<{}> {
   }
 
   componentDidMount () {
-
     this.fetchData()
   }
 
-  fetchData () {
+  componentWillReceiveProps(nextProps) {
+    if(nextProps) this.fetchData()
+  }
+
+  fetchData = async () => {
+    // setTimeout(() => {
+    //   this.setState({events:this.props.data.events, isFetching: false})
+    //   // const dataUser = await AsyncStorage.getItem('dataUser')
+    //   // userId = JSON.parse(dataUser).id
+    //   userId = 'jdo7ks2s'
+    // },1000)
+
     setTimeout(() => {
       this.setState({events, isFetching: false})
     },1000)
   }
 
   _renderItem = ({item}) => {
-    return <CardEvent item={item} nav={'events'} />
+    return <CardEvent item={item} />
   }
 
   _onRefresh = () => {
@@ -68,6 +77,7 @@ class Home extends Component<{}> {
 
   render () {
     const {events, isFetching} = this.state
+    console.log(this.props);
     return(
       <View style={styles.container}>
         <OptimizedFlatList
@@ -83,25 +93,49 @@ class Home extends Component<{}> {
   }
 }
 
+let userId = ''
+
 const Events = gql`
-  query Events {
-    forums {
+  query Events ($userId:ID!) {
+    events (UserId: $userId) {
       id
       title
       content
       pictures {
         id
         path
+      },
+      eventDate,
+      divisions {
+        id
+        name
+        members {
+          id
+          email
+          role {
+            id
+            name
+          }
+        profilePicture
+        firstName
+      }
+    }
+    management {
+      members {
+        id
+        firstName
+        profilePicture
       }
     }
   }
+}
 `;
 
-// export default graphql(Events)(Home);
-export default Home
+export default graphql(Events, {
+  options : { variables: { userId } }
+})(Home);
 
-
-
+// export default Home
 const styles = StyleSheet.create({
   container:{
     flex:1,

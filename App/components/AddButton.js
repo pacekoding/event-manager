@@ -35,6 +35,12 @@ export default class AddButton extends Component<{}> {
     })
   }
 
+  handlePress = () => {
+    const { hideModal, type } = this.props
+    if(hideModal) hideModal()
+    if(type === 'activity') Actions.addActivity()
+    else Actions.add()
+  }
 
   render () {
     return(
@@ -56,7 +62,7 @@ export default class AddButton extends Component<{}> {
           type='material-icons'
           color='#FFFFFF'
           size={28}
-          onPress={() => Actions.modalAdd()} />
+          onPress={this.handlePress} />
       </Animated.View>
     )
   }

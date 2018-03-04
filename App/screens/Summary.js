@@ -180,9 +180,9 @@ const styles = StyleSheet.create({
     flexDirection:'row',
     backgroundColor:'#FFFFFF',
     padding:5,
-    marginLeft: 5,
-    marginRight: 5,
-    marginTop: 5
+    // marginLeft: 5,
+    // marginRight: 5,
+    // marginTop: 5
   },
   selectedYear: {
     flex: 1,
@@ -202,9 +202,9 @@ const styles = StyleSheet.create({
     flex: 5,
     backgroundColor: '#FFFFFF',
     padding:5,
-    marginLeft: 5,
-    marginRight: 5,
-    marginBottom: 5,
+    // marginLeft: 5,
+    // marginRight: 5,
+    // marginBottom: 5,
   },
   chartTitle: {
     flexDirection:'row',

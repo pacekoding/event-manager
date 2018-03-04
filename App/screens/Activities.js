@@ -1,11 +1,15 @@
 import React, {Component} from 'react'
 import {
+  Animated,
   StyleSheet,
   View,
   Text,
   Image,
   Dimensions,
-  RefreshControl
+  RefreshControl,
+  BackHandler,
+  Alert,
+  PanResponder
 } from 'react-native'
 import {
   Card,
@@ -17,7 +21,7 @@ import {OptimizedFlatList} from 'react-native-optimized-flatlist'
 import {Actions} from 'react-native-router-flux'
 
 //components
-import {AddButton, CardEvent} from '../components'
+import {AddButton, CardActivity} from '../components'
 ///data dummy
 import {activities} from '../lib/dummy.js'
 
@@ -30,14 +34,37 @@ export default class Activities extends Component<{}> {
     this.state = {
       activities: [],
       isFetching: false,
-      formEdit: {
-        phone:'',
-      }
+      sIndex: 0,
+      isOpen: false
     }
   }
 
+  componentWillMount() {
+     BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
+     this._panResponder = PanResponder.create({
+       onStartShouldSetPanResponder: (evt, gestureState) => true,
+       onPanResponderGrant: (evt, gestureState) => {
+         console.log('asdf');
+          this.hideModal()
+       },
+     })
+   }
+
+   componentWillUnmount () {
+     BackHandler.removeEventListener('hardwareBackPress', this.backNavigation)
+   }
+
   componentDidMount () {
     this.fetchData()
+  }
+
+  backNavigation = () => {
+    Actions.pop()
+    return true
+  }
+
+  hideModal = () => {
+    this.setState({isOpen: false})
   }
 
   fetchData () {
@@ -61,24 +88,54 @@ export default class Activities extends Component<{}> {
      />
   }
 
-  _renderItem = ({item}) => {
-    return <CardEvent item={item} nav={'activities'} />
+  handleEdit () {
+    this.hideModal()
+    Actions.editActivity()
+  }
+
+  deleteActivity = () => {
+    this.hideModal()
+  }
+
+  handleDelete () {
+    Alert.alert(
+      'Delete Activities',
+      'Are you sure?',
+      [
+        {text: 'Yes', onPress: this.deleteActivity},
+        {text: 'No', onPress: this.hideModal, style: 'cancel'},
+      ],
+      { cancelable: false }
+    )
+  }
+
+  handleModal = (params,index) => {
+    this.setState({isOpen: true,sIndex:index})
+    if(params === 'delete') this.handleDelete()
+    if(params === 'edit') this.handleEdit()
+  }
+
+  _renderItem = ({item,index},parent) => {
+    return <CardActivity item={item} index={index} parent={parent} />
   }
 
   render(){
-
-    const {formEdit} = this.state
-
+    const parent = {
+      isOpen: this.state.isOpen,
+      handleModal :this.handleModal,
+      sIndex: this.state.sIndex,
+      _panResponder: this._panResponder
+    }
     return(
-      <View style={styles.container}>
+      <View style={styles.container} {...this._panResponder.panHandlers}>
         <OptimizedFlatList
           style={{flex:1}}
           data={activities}
-          keyExtractor={(item, index) => index}
-          renderItem={this._renderItem}
+          keyExtractor={(item, index) => String(index)}
+          renderItem={(props) => this._renderItem(props,parent)}
           refreshControl={this._refreshControl()}
         />
-        <AddButton />
+        <AddButton type={'activity'} hideModal={this.hideModal} />
       </View>
     )
   }

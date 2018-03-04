@@ -1,74 +1,129 @@
 import React, {Component} from 'react';
 import {
   StyleSheet,
-  View
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  AsyncStorage
 } from 'react-native';
 import {
-  Button,
-  FormLabel,
-  FormInput,
-  FormValidationMessage
+  Icon
 } from 'react-native-elements'
-import { Actions } from 'react-native-router-flux'
 
-export default class Login extends Component<{}> {
+import { graphql } from 'react-apollo'
+import gql from 'graphql-tag'
+
+import { Actions } from 'react-native-router-flux'
+import {validateEmail} from '../lib/helpers'
+
+class Login extends Component<{}> {
   constructor(){
     super()
     this.state ={
       email:'',
       password:'',
-      isEmptyEmail:false,
-      isEmptyPassword:false,
+      isShow: false
     }
   }
 
-  handleChange= (key,value) => {
-    this.setState({[key]:value})
+  handleShowPassword = () => {
+    this.setState(prevState => ({ isShow: !prevState.isShow }))
   }
 
-  handlePress = () => {
+  validation = () => {
     const { email, password } = this.state
-    this.setState({
-      isEmptyEmail: email === '',
-      isEmptyPassword: password === ''
-    },() => this.sendRequest())
+    const isEmptyEmail = !email
+    const isEmptyPassword = !password
+    const isValidEmail = validateEmail(email)
+
+    if(isEmptyEmail) alert('Please input an email')
+    else if(isEmptyPassword) alert('Please input a password')
+    else if(!isValidEmail) alert('Please input a valid email')
+    else this.handleLogin()
   }
 
-  sendRequest = () => {
-    const { isEmptyEmail, isEmptyPassword } = this.state
-    return (!isEmptyEmail || !isEmptyPassword) && Actions.tabBar()
+  handleLogin = async() => {
+    const { email, password } = this.state
+    const { submit } = this.props
+
+    try {
+      const res = await submit(email, password)
+       if (res.data.login.ok) {
+         alert('Login Success!')
+         const dataUser = res.data.login.user
+         AsyncStorage.setItem('dataUser', JSON.stringify(dataUser))
+         Actions.homeTabBar()
+       } else {
+         const error = res.data.login.errors[0].message
+         alert(error)
+       }
+    } catch(err) {
+      console.log('error',err);
+    }
+
   }
 
   render() {
     const { isEmptyEmail, isEmptyPassword } = this.state
     return (
       <View style={styles.container}>
+        <View style={styles.formContainer}>
+          <View style={styles.titleContainer}>
+            <Text style={styles.titleText}>Login</Text>
+          </View>
 
-      <View style={styles.formLogin}>
+          <View style={[styles.emailContainer,{ borderBottomWidth: 0.5, borderBottomColor: '#FAFAFA' } ]}>
+            <Icon
+              name='email'
+              type='material-community'
+              color={'#FFFFFF'}
+              size={30}
+            />
+            <TextInput
+              style={styles.emailText}
+              placeholder= 'Email'
+              placeholderTextColor= {'#FFFFFF'}
+              underlineColorAndroid= 'transparent'
+              onChangeText={(email) => this.setState({email})}
+              value={this.state.email}
+            />
+          </View>
 
-        <FormLabel>Email</FormLabel>
-        <FormInput
-          placeholder={'Please enter your email...'}
-          shake ={isEmptyEmail}
-          onChangeText={value => this.handleChange('email',value)}/>
-        <FormValidationMessage>{isEmptyEmail ? 'Enter an email' : ''}</FormValidationMessage>
+          <View style={[styles.emailContainer,{ borderBottomWidth: 0.5, borderBottomColor: '#FAFAFA' } ]}>
+            <Icon
+              name='lock'
+              type='material-community'
+              color={'#FFFFFF'}
+              size={30}
+            />
+            <TextInput
+              style={styles.emailText}
+              placeholder= 'Password'
+              placeholderTextColor= {'#FFFFFF'}
+              underlineColorAndroid= 'transparent'
+              secureTextEntry={!this.state.isShow}
+              onChangeText={(password) => this.setState({password})}
+              value={this.state.password}
+            />
+            <TouchableOpacity style={{justifyContent:'center'}} onPress={this.handleShowPassword}>
+              <Icon
+                name={this.state.isShow ? 'eye-off-outline' : 'eye'}
+                type='material-community'
+                color={'#FFFFFF'}
+                size={25}
+              />
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity style={styles.button} onPress={this.validation}>
+            <Text style={styles.loginText}>LOGIN</Text>
+          </TouchableOpacity>
 
-        <FormLabel>Password</FormLabel>
-        <FormInput
-          placeholder={'Please enter your password...'}
-          secureTextEntry={true}
-          shake ={isEmptyPassword} onChangeText={value => this.handleChange('password',value)}/>
-        <FormValidationMessage>{isEmptyPassword ? 'Enter a password' : ''}</FormValidationMessage>
+          <TouchableOpacity style={styles.signUp} onPress={()=> Actions.register()}>
+            <Text style={styles.registerText}>Register</Text>
+          </TouchableOpacity>
 
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <Button
-          raised
-          title='Log in'
-          buttonStyle={styles.buttonLogin}
-          onPress={this.handlePress} />
-      </View>
+        </View>
       </View>
     );
   }
@@ -77,20 +132,80 @@ export default class Login extends Component<{}> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection:'column',
-    justifyContent:'space-around',
-    backgroundColor: '#F5FCFF',
+    backgroundColor: '#448AFF',
+    justifyContent:'center',
+    alignItems: 'center'
   },
-  formLogin: {
-    flex:1,
-    flexDirection:'column',
-    justifyContent:'center'
+  formContainer: {
+    width: '90%',
+    flexDirection: 'column',
+    padding: 10,
   },
-  buttonContainer: {
-    flex:1,
-    justifyContent:'flex-start',
+  emailContainer: {
+    flexDirection: 'row',
   },
-  buttonLogin: {
-    backgroundColor:'#2196F3'
+  titleContainer: {
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  titleText: {
+    fontSize: 25,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  emailText: {
+    flex: 1,
+    marginLeft: 10,
+    color : "#FFFFFF"
+  },
+  button: {
+    height: 45,
+    borderRadius: 2,
+    marginTop: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  loginText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#448AFF',
+  },
+  registerText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  signUp: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 50
   }
+
 });
+
+const login = gql`
+  mutation login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      ok
+      user{
+        id,
+        firstName,
+        lastName,
+        email
+      }
+      errors {
+        message
+      }
+    }
+  }
+`;
+
+export default graphql(login, {
+  props: ({mutate}) => ({
+    submit: (email,password) => mutate({
+      variables: { email, password }
+    })
+  })
+})(Login)

@@ -12,7 +12,8 @@ import {
   Modal,
   ScrollView,
   Image,
-  Button
+  Button,
+  AsyncStorage
 } from 'react-native'
 import DateTimePicker from 'react-native-modal-datetime-picker'
 import { Icon } from 'react-native-elements'
@@ -22,9 +23,11 @@ import { graphql } from 'react-apollo'
 import gql from 'graphql-tag'
 import moment from 'moment'
 
+import {events} from '../lib/dummy.js'
+
 let {width,height} = Dimensions.get('window')
 
-class AddEvent extends Component<{}> {
+class EditEvent extends Component<{}> {
 
   constructor(){
     super()
@@ -48,9 +51,25 @@ class AddEvent extends Component<{}> {
     BackHandler.removeEventListener('hardwareBackPress', this.backNavigation)
   }
 
+  componentDidMount() {
+    this.handleDetail()
+  }
+
   backNavigation = () => {
     Actions.pop()
     return true
+  }
+
+  handleDetail = async () => {
+    const detailEvent = await AsyncStorage.getItem('detailEvent')
+    const { id,title,pictures,content,eventDate } = JSON.parse(detailEvent)
+    this.setState({
+      title,
+      tempPictures: pictures,
+      description: content,
+      dateText: moment(eventDate).format('LL'),
+      date: new Date(eventDate)
+    })
   }
 
   handleModal = () => this.setState(prevState => ({ showModal: !prevState.showModal }))
@@ -91,7 +110,7 @@ class AddEvent extends Component<{}> {
     }
   }
 
-  handleAdd = async () => {
+  handleChange = async () => {
     // const { submit } = this.props
     // const new_forum = {
     //   title:"this",
@@ -115,6 +134,7 @@ class AddEvent extends Component<{}> {
   };
 
   render() {
+    console.log(this.props);
     return (
       <View style={styles.container}>
         <View style={styles.content}>
@@ -124,7 +144,7 @@ class AddEvent extends Component<{}> {
               <View style={styles.viewRowScroll}>
                 {this.state.tempPictures.map((item, index) => (
                   <View key={index} style={{marginRight:8}}>
-                    <Image source={{uri:item}} style={styles.imgRespon} />
+                    <Image source={{uri:item.path}} style={styles.imgRespon} />
                     <TouchableOpacity style={styles.viewBelumDitanggapi}
                       onPress={() => this.deletePicture(index)}>
                       <Icon
@@ -161,7 +181,8 @@ class AddEvent extends Component<{}> {
               <TextInput
                 ref='title'
                 name='title'
-                placeholder='Title'
+                value={this.state.title}
+                placeholder={'Title'}
                 placeholderTextColor={'#A2A2A2'}
                 returnKeyType='next'
                 underlineColorAndroid='transparent'
@@ -179,7 +200,8 @@ class AddEvent extends Component<{}> {
             />
               <TextInput
                 ref='description'
-                placeholder='Description'
+                value={this.state.description}
+                placeholder={'description'}
                 placeholderTextColor={'#A2A2A2'}
                 returnKeyType='next'
                 multiline
@@ -200,7 +222,7 @@ class AddEvent extends Component<{}> {
                 size={24}
               />
               <TouchableOpacity onPress={this._showDateTimePicker}>
-                <Text style={[styles.dateInput,{color: this.state.dateText ? '#000000' : '#A2A2A2'}]}>{this.state.dateText || 'Date'}</Text>
+                <Text style={[styles.dateInput,{color: this.state.dateText ? '#000000' : '#A2A2A2'}]}>{this.state.dateText || 'Februari 16, 2018'}</Text>
               </TouchableOpacity>
               <DateTimePicker
                 isVisible={this.state.isDateTimePickerVisible}
@@ -214,8 +236,8 @@ class AddEvent extends Component<{}> {
             <View style={styles.line} />
           </ScrollView>
 
-          <TouchableOpacity style={styles.buttonAdd} onPress={this.handleAdd}>
-            <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>ADD</Text>
+          <TouchableOpacity style={styles.buttonChange} onPress={this.handleChange}>
+            <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>CHANGE</Text>
           </TouchableOpacity>
 
         </View>
@@ -224,7 +246,7 @@ class AddEvent extends Component<{}> {
         <Modal visible={this.state.showModal}
           animationType={'fade'}
           transparent backgroundColor='transparent'
-          onRequestClose={() => console.log('close')}>
+          onRequestClose={() => true}>
 
           <View style={styles.modalKeluhanContainer}>
             <View style={styles.modalKeluhanContentContainer}>
@@ -258,7 +280,8 @@ class AddEvent extends Component<{}> {
 
 const styles = StyleSheet.create({
     container: {
-      flex: 1
+      flex: 1,
+      backgroundColor: '#FFFFFF'
     },
     title: {
       fontSize: 21,
@@ -414,7 +437,7 @@ const styles = StyleSheet.create({
       marginTop: 16,
       marginBottom: 16
     },
-    buttonAdd: {
+    buttonChange: {
       height:50,
       alignItems:'center',
       justifyContent:'center',
@@ -422,22 +445,22 @@ const styles = StyleSheet.create({
     }
 })
 
-const AddMutation = gql`
-  mutation addForum($new_forum: Event!) {
-    addForum(forum: $new_forum) {
-      ok
-      forum{
-        id
-        eventDate
-        title
-        content
-      }
-      errors {
-        message
-      }
-    }
-  }
-`;
+// const editMutation = gql`
+//   mutation editForum($new_forum: Event!) {
+//     editForum(forum: $new_forum) {
+//       ok
+//       forum{
+//         id
+//         eventDate
+//         title
+//         content
+//       }
+//       errors {
+//         message
+//       }
+//     }
+//   }
+// `;
 
 // export default graphql(AddMutation, {
 //   props: ({mutate}) => ({
@@ -447,4 +470,23 @@ const AddMutation = gql`
 //   })
 // })(AddEvent)
 
-export default AddEvent
+// const Events = gql`
+//   query Events ($userId:ID!) {
+//     events (UserId: $userId) {
+//       id
+//       title
+//       content
+//       pictures {
+//         id
+//         path
+//       },
+//       eventDate
+//     }
+//   }
+// `;
+//
+// export default graphql(Events, {
+//   options : { variables: { userId } }
+// })(Home);
+
+export default EditEvent

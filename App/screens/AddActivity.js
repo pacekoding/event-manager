@@ -15,6 +15,7 @@ import {
   Button
 } from 'react-native'
 import DateTimePicker from 'react-native-modal-datetime-picker'
+import { Dropdown } from 'react-native-material-dropdown';
 import { Icon } from 'react-native-elements'
 import { Actions } from 'react-native-router-flux'
 import * as Crop from 'react-native-image-crop-picker'
@@ -22,17 +23,17 @@ import { graphql } from 'react-apollo'
 import gql from 'graphql-tag'
 import moment from 'moment'
 
-let {width,height} = Dimensions.get('window')
+const {width} = Dimensions.get('window')
 
-class AddEvent extends Component<{}> {
+class AddActivity extends Component<{}> {
 
   constructor(){
     super()
     this.state = {
-      // tempPictures: ['file:///data/user/0/com.eventmanager/cache/react-native-image-crop-picker/343e3adf-35a3-45ca-88d9-6103fd387940.jpg'],
       tempPictures: [],
       title: '',
       description: '',
+      amount: '',
       isDateTimePickerVisible: false,
       date: new Date(),
       dateText: '',
@@ -58,6 +59,8 @@ class AddEvent extends Component<{}> {
   onChangeTitle = title => this.setState({ title })
 
   onChangeDescription = description => this.setState({ description })
+
+  onChangeAmount = amount => this.setState({ amount })
 
   deletePicture = (index) => {
     this.setState(prevState => {
@@ -151,22 +154,25 @@ class AddEvent extends Component<{}> {
 
             <View style={styles.line} />
 
-            <View style={styles.formEvent}>
+            <View style={styles.formDropDown}>
               <Icon
                 name='title'
                 type='material-icons'
                 color='#4fc3f7'
                 size={24}
               />
-              <TextInput
-                ref='title'
-                name='title'
-                placeholder='Title'
-                placeholderTextColor={'#A2A2A2'}
-                returnKeyType='next'
-                underlineColorAndroid='transparent'
-                onChangeText={this.onChangeTitle}
-                style={styles.textInput} />
+              <Dropdown
+                containerStyle={styles.dropDownContainer}
+                pickerStyle={[styles.pickerStyle]}
+                label='Title'
+                textColor='#212121'
+                animationDuration={150}
+                value={'Expense'}
+                lineWidth={0}
+                fontSize={14}
+                dropdownPosition={-2}
+                data={[{ value: 'Expense' },{ value: 'Income' }]}
+              />
             </View>
 
             <View style={styles.line} />
@@ -194,12 +200,78 @@ class AddEvent extends Component<{}> {
 
             <View style={styles.formEvent}>
               <Icon
+                name='coins'
+                type='material-community'
+                color='#4fc3f7'
+                size={24}
+              />
+              <TextInput
+                ref='amount'
+                name='amount'
+                placeholder='Amount'
+                placeholderTextColor={'#A2A2A2'}
+                returnKeyType='next'
+                underlineColorAndroid='transparent'
+                onChangeText={this.onChangeAmount}
+                style={styles.textInput} />
+            </View>
+
+            <View style={styles.line} />
+
+            <View style={styles.formDropDown}>
+              <Icon
+                name='verified'
+                type='material-community'
+                color='#4fc3f7'
+                size={24}
+              />
+              <Dropdown
+                containerStyle={styles.dropDownContainer}
+                pickerStyle={[styles.pickerStyle]}
+                label='Verification'
+                textColor='#212121'
+                fontSize={14}
+                animationDuration={150}
+                value={'Verified'}
+                lineWidth={0}
+                dropdownPosition={-2}
+                data={[{ value: 'Verified' },{ value: 'Unverified' }]}
+              />
+            </View>
+
+            <View style={styles.line} />
+
+            <View style={styles.formDropDown}>
+              <Icon
+                name='group'
+                type='material-icons'
+                color='#4fc3f7'
+                size={24}
+              />
+              <Dropdown
+                containerStyle={styles.dropDownContainer}
+                pickerStyle={[styles.pickerStyle]}
+                label='Division'
+                fontSize={14}
+                textColor='#212121'
+                animationDuration={150}
+                value={'Finance'}
+                lineWidth={0}
+                dropdownPosition={3.5}
+                data={[{ value: 'Finance' },{ value: 'Creative' },{ value: 'Transportation' },{ value: 'Security' }]}
+              />
+            </View>
+
+            <View style={styles.line} />
+
+            <View style={styles.formEvent}>
+              <Icon
                 name='date-range'
                 type='material-icons'
                 color='#4fc3f7'
                 size={24}
               />
-              <TouchableOpacity onPress={this._showDateTimePicker}>
+              <TouchableOpacity style={{width:'100%'}} onPress={this._showDateTimePicker}>
                 <Text style={[styles.dateInput,{color: this.state.dateText ? '#000000' : '#A2A2A2'}]}>{this.state.dateText || 'Date'}</Text>
               </TouchableOpacity>
               <DateTimePicker
@@ -207,7 +279,6 @@ class AddEvent extends Component<{}> {
                 onConfirm={this._handleDatePicked}
                 onCancel={this._hideDateTimePicker}
                 date={this.state.date}
-                minimumDate={new Date()}
               />
             </View>
 
@@ -260,11 +331,6 @@ const styles = StyleSheet.create({
     container: {
       flex: 1
     },
-    title: {
-      fontSize: 21,
-      color: '#01C6B2',
-      fontFamily: 'BrandonText-Bold'
-    },
     content: {
       flex: 1,
       backgroundColor: '#FFFFFF'
@@ -290,10 +356,17 @@ const styles = StyleSheet.create({
       marginTop: 15,
       fontSize: 11,
       color: '#95989A',
-      fontFamily: 'BrandonText-Regular'
+      fontFamily: 'Roboto'
     },
     formEvent: {
       height: 45,
+      width: '100%',
+      paddingLeft: 10,
+      flexDirection: 'row',
+      alignItems: 'center'
+    },
+    formDropDown: {
+      height: 60,
       width: '100%',
       paddingLeft: 10,
       flexDirection: 'row',
@@ -310,12 +383,11 @@ const styles = StyleSheet.create({
     textInputDescription: {
       width: '85%',
       alignItems: 'center',
-      fontSize: 16,
       color: '#212121',
       marginLeft: 16,
       marginBottom: 12,
       paddingTop: 16,
-      fontFamily: 'BrandonText-LightItalic'
+      fontFamily: 'Roboto'
     },
     line: {
       width: '100%',
@@ -326,17 +398,16 @@ const styles = StyleSheet.create({
       width: '85%',
       height: 45,
       alignItems: 'center',
-      fontSize: 16,
       color: '#212121',
       marginLeft: 16,
       paddingTop: 12,
-      fontFamily: 'BrandonText-LightItalic'
+      fontFamily: 'Roboto'
     },
     dateInput: {
-      fontSize: 16,
+      fontSize: 14,
       alignItems: 'center',
-      fontFamily: 'BrandonText-LightItalic',
-      marginLeft:16
+      fontFamily: 'Roboto',
+      marginLeft:20
     },
     modalKeluhanContainer: {
       flex: 1,
@@ -419,7 +490,18 @@ const styles = StyleSheet.create({
       alignItems:'center',
       justifyContent:'center',
       backgroundColor: '#2196F3',
-    }
+    },
+    dropDownContainer: {
+      flex: 1,
+      marginTop: -5,
+      marginLeft: 20,
+      marginRight: 20,
+    },
+    pickerStyle: {
+      width: width/2,
+      marginLeft: 16,
+      marginTop: 3,
+    },
 })
 
 const AddMutation = gql`
@@ -445,6 +527,6 @@ const AddMutation = gql`
 //       variables: { ...new_forum }
 //     })
 //   })
-// })(AddEvent)
+// })(AddActivity)
 
-export default AddEvent
+export default AddActivity

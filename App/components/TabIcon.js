@@ -3,8 +3,8 @@ import { Icon } from 'react-native-elements'
 
 const TabIcon = ({focused,tintColor,title}) => {
 
-  const isMyEvents = title === 'MY EVENT'
-  const isProfile = title === 'PROFILE'
+  const isMyEvents = title === 'Events'
+  const isProfile = title === 'Profile'
 
   return(
     <Icon
