@@ -5,7 +5,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  AsyncStorage
+  AsyncStorage,
+  Keyboard
 } from 'react-native';
 import {
   Icon
@@ -23,7 +24,8 @@ class Login extends Component<{}> {
     this.state ={
       email:'',
       password:'',
-      isShow: false
+      isShow: false,
+      isFetching: false
     }
   }
 
@@ -36,11 +38,10 @@ class Login extends Component<{}> {
     const isEmptyEmail = !email
     const isEmptyPassword = !password
     const isValidEmail = validateEmail(email)
-
     if(isEmptyEmail) alert('Please input an email')
     else if(isEmptyPassword) alert('Please input a password')
     else if(!isValidEmail) alert('Please input a valid email')
-    else this.handleLogin()
+    else this.setState({isFetching:true}, this.handleLogin)
   }
 
   handleLogin = async() => {
@@ -53,8 +54,10 @@ class Login extends Component<{}> {
          alert('Login Success!')
          const dataUser = res.data.login.user
          AsyncStorage.setItem('dataUser', JSON.stringify(dataUser))
-         Actions.homeTabBar()
+         Actions.event({ type: 'replace', UserId: dataUser.id })
+         Keyboard.dismiss()
        } else {
+         this.setState({isFetching:false})
          const error = res.data.login.errors[0].message
          alert(error)
        }
@@ -65,7 +68,9 @@ class Login extends Component<{}> {
   }
 
   render() {
-    const { isEmptyEmail, isEmptyPassword } = this.state
+    const { isEmptyEmail, isEmptyPassword,isFetching } = this.state
+    if (isFetching)
+     return <Loading visible={isFetching}/>
     return (
       <View style={styles.container}>
         <View style={styles.formContainer}>
@@ -194,6 +199,7 @@ const login = gql`
         firstName,
         lastName,
         email
+        profilePicture
       }
       errors {
         message

@@ -22,12 +22,24 @@ const imageWidth = width - width * 0.1
 const imageHeight = width - width * 0.1
 
 const CardEvent = ({item}) => {
-    const {id,title,pictures,content,eventDate} = item
+    const { id, title, pictures, content, eventDate } = item
     const eventdateText = moment(eventDate).format('L')
     const dueDateColor = '#9E9E9E'
+
     handleSetting = () => {
       AsyncStorage.setItem('detailEvent',JSON.stringify(item))
-      Actions.setting()
+      Actions.editEvent({detailEvent:item})
+    }
+
+    handleForum = () => {
+      AsyncStorage.setItem('detailEvent',JSON.stringify(item))
+      Actions.forum({EventId: "jdyc6863"})
+    }
+
+    handleManagement = () => {
+      AsyncStorage.setItem('detailEvent',JSON.stringify(item))
+      AsyncStorage.setItem('incomeExpense',JSON.stringify(item.incomeExpense))
+      Actions.management()
     }
 
     return(
@@ -92,10 +104,10 @@ const CardEvent = ({item}) => {
         </View>
         <View style={styles.line} />
         <View style={styles.cardButtonContainer}>
-          <TouchableOpacity style={styles.optionContainer} onPress={() => Actions.forum()} >
+          <TouchableOpacity style={styles.optionContainer} onPress={this.handleForum} >
             <Text style={[styles.optionText,{color: '#2962FF'}]}>Forum</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.optionContainer} onPress={() => Actions.management()} >
+          <TouchableOpacity style={styles.optionContainer} onPress={this.handleManagement} >
             <Text style={[styles.optionText,{color: '#00C853'}]}>Management</Text>
           </TouchableOpacity>
         </View>

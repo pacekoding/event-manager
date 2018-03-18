@@ -27,33 +27,24 @@ class DetailForum extends Component<{}> {
   constructor (props) {
     super()
     this.state = {
-      comments: [],
+      detailForum: {},
       comment: '',
       isFetching: true
     }
-  }
-  componentWillMount() {
-    BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
   }
 
   componentWillUnmount () {
     BackHandler.removeEventListener('hardwareBackPress', this.backNavigation)
   }
 
-
   componentDidMount () {
-    this.fetchData()
+    BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
+    this.setState({isFetching: false})
   }
 
   backNavigation = () => {
     Actions.pop()
     return true
-  }
-
-  fetchData () {
-    setTimeout(() => {
-      this.setState({comments, isFetching: false})
-    },1000)
   }
 
   _renderItem = ({item}) => {
@@ -65,60 +56,26 @@ class DetailForum extends Component<{}> {
 
   render () {
     const {
-      comments,
+      detailForum,
       isFetching
-    } = this.state
+    } = this.props
+
     const {
       id,
       title,
-      pictures,
       content,
-      date
-    } = forums[0]
+      messages,
+      createdAt
+    } = detailForum
 
-    const totalComments = 4
-    const hasPictures = pictures && pictures.length !== 0
-    const dateText = moment(new Date()).format('LL')
+    const totalComments = messages.length
+    const dateText = moment(createdAt).format('LL')
     const dueDateColor = '#757575'
 
     return(
       <View style={styles.container}>
       <ScrollView>
         <View style={styles.content}>
-        {
-          hasPictures &&
-          <View style={styles.swiperContainer}>
-            <Swiper
-              loop={false}
-              dot={
-                <View style={{
-                    backgroundColor: '#A6A6A6',
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
-                    marginLeft: 6,
-                    marginRight: 6,
-                    marginTop: 6,
-                    marginBottom: 0}} />}
-              activeDot={
-                <View style={{
-                    backgroundColor: '#FFFFFF',
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
-                    marginLeft: 6,
-                    marginRight: 6,
-                    marginTop: 6,
-                    marginBottom: 0}} />}
-              >
-              { pictures.map((item, index) => (
-                <View style={styles.slide} key={index}>
-                  <Image source={{uri: item.path}} style={styles.imageEvent} />
-                </View>
-              ))}
-            </Swiper>
-          </View>
-        }
         <View style={styles.contentContainer}>
           <Text style={styles.titleText}>{title}</Text>
           <Text style={styles.descriptionText}>{content}</Text>
@@ -149,7 +106,7 @@ class DetailForum extends Component<{}> {
           isFetching ?  <ActivityIndicator size="large" color="#2979FF" />
           :
           <OptimizedFlatList
-            data={comments}
+            data={messages}
             keyExtractor={(item, index) => index}
             renderItem={this._renderItem}
           />

@@ -3,16 +3,15 @@ import {
   StyleSheet,
   View,
   Text,
-  processColor,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   TextInput,
   Dimensions,
   BackHandler,
   Modal,
   ScrollView,
   Image,
-  Button
+  Button,
+  AsyncStorage
 } from 'react-native'
 import DateTimePicker from 'react-native-modal-datetime-picker'
 import { Icon } from 'react-native-elements'
@@ -22,6 +21,8 @@ import { graphql } from 'react-apollo'
 import gql from 'graphql-tag'
 import moment from 'moment'
 
+import {upload} from '../lib/helpers'
+
 let {width,height} = Dimensions.get('window')
 
 class AddEvent extends Component<{}> {
@@ -29,13 +30,13 @@ class AddEvent extends Component<{}> {
   constructor(){
     super()
     this.state = {
-      // tempPictures: ['file:///data/user/0/com.eventmanager/cache/react-native-image-crop-picker/343e3adf-35a3-45ca-88d9-6103fd387940.jpg'],
-      tempPictures: [],
+      pictures: [],
+      path: [],
       title: '',
-      description: '',
-      isDateTimePickerVisible: false,
-      date: new Date(),
+      content: '',
+      eventDate: new Date(),
       dateText: '',
+      isDateTimePickerVisible: false,
       showModal: false
    }
   }
@@ -57,12 +58,12 @@ class AddEvent extends Component<{}> {
 
   onChangeTitle = title => this.setState({ title })
 
-  onChangeDescription = description => this.setState({ description })
+  onChangeContent = content => this.setState({ content })
 
   deletePicture = (index) => {
     this.setState(prevState => {
       return {
-        tempPictures: prevState.tempPictures.filter((data,i) =>  index !== i)
+        pictures: prevState.pictures.filter((data,i) =>  index !== i)
       }
     })
   }
@@ -72,7 +73,12 @@ class AddEvent extends Component<{}> {
       const image = await Crop.default.openCamera({width: width, height: width+(width*0.35), cropping: true})
       const postData = new FormData()
       postData.append('file', { uri: image.path, type: 'image/jpg', name: 'qluster.jpg' })
-      this.setState(prevState => ({ tempPictures:[image.path,...prevState.tempPictures] }), this.handleModal())
+      const data = await upload(postData)
+
+      this.setState(prevState => ({
+        pictures:[image.path, ...prevState.pictures],
+        path:[data.result, ...prevState.path]
+      }), this.handleModal() )
     }
     catch(err) {
       this.handleModal()
@@ -84,7 +90,12 @@ class AddEvent extends Component<{}> {
       const image = await Crop.default.openPicker({width: width, height: width+(width*0.35), cropping: true})
       const postData = new FormData()
       postData.append('file', { uri: image.path, type: 'image/jpg', name: 'qluster.jpg' })
-      this.setState(prevState => ({ tempPictures:[image.path,...prevState.tempPictures] }), this.handleModal())
+      const data = await upload(postData)
+
+      this.setState(prevState => ({
+        pictures:[image.path, ...prevState.pictures],
+        path:[data.result, ...prevState.path]
+      }), this.handleModal() )
     }
     catch(err) {
       this.handleModal()
@@ -92,27 +103,37 @@ class AddEvent extends Component<{}> {
   }
 
   handleAdd = async () => {
-    // const { submit } = this.props
-    // const new_forum = {
-    //   title:"this",
-    //   content:"that",
-    //   UserId:"jcd7caw7",
-    //   picturePath:"https://image.freepik.com/free-photo/cute-cat-picture_1122-449.jpg",
-    //   eventDate:"12 august 2012"
-    // }
-    //
-    // const res = await submit({ new_forum })
-    //  console.log('add data',res.data);
+    const dataUser = await AsyncStorage.getItem('dataUser')
+    const UserId = JSON.parse(dataUser).id
+
+    const { submit } = this.props
+    const {
+      title,
+      content,
+      path,
+      eventDate
+    } = this.state
+
+    const new_event = {
+      UserId,
+      title,
+      content,
+      path,
+      eventDate
+    }
+
+    const res = await submit({ new_event })
+    Actions.event({ type: 'replace', UserId, isRefetch: true })
   }
 
-  _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true });
+  _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true })
 
-  _hideDateTimePicker = () => this.setState({ isDateTimePickerVisible: false });
+  _hideDateTimePicker = () => this.setState({ isDateTimePickerVisible: false })
 
-  _handleDatePicked = (date) => {
-    this.setState({ date,dateText: moment(date).format('LL') })
+  _handleDatePicked = (eventDate) => {
+    this.setState({ eventDate, dateText: moment(eventDate).format('LL') })
     this._hideDateTimePicker();
-  };
+  }
 
   render() {
     return (
@@ -122,15 +143,16 @@ class AddEvent extends Component<{}> {
           <ScrollView>
             <ScrollView horizontal={true} style={{marginLeft:10, marginRight:10}}>
               <View style={styles.viewRowScroll}>
-                {this.state.tempPictures.map((item, index) => (
+                {this.state.pictures.map((item, index) => (
                   <View key={index} style={{marginRight:8}}>
                     <Image source={{uri:item}} style={styles.imgRespon} />
                     <TouchableOpacity style={styles.viewBelumDitanggapi}
                       onPress={() => this.deletePicture(index)}>
                       <Icon
-                        name='close-circle-outline'
-                        type='material-community'
-                        color='#C62828'
+                        containerStyle={{backgroundColor: '#EEEEEE', height:20, width:20, borderRadius: 20/2}}
+                        name='x-circle'
+                        type='feather'
+                        color='#D32F2F'
                         size={20}
                       />
                     </TouchableOpacity>
@@ -185,7 +207,7 @@ class AddEvent extends Component<{}> {
                 multiline
                 numberOfLines={3}
                 name={'test'}
-                onChangeText={this.onChangeDescription}
+                onChangeText={this.onChangeContent}
                 underlineColorAndroid='transparent'
                 style={styles.textInputDescription} />
             </View>
@@ -199,14 +221,14 @@ class AddEvent extends Component<{}> {
                 color='#4fc3f7'
                 size={24}
               />
-              <TouchableOpacity onPress={this._showDateTimePicker}>
+              <TouchableOpacity style={{flex:1}} onPress={this._showDateTimePicker}>
                 <Text style={[styles.dateInput,{color: this.state.dateText ? '#000000' : '#A2A2A2'}]}>{this.state.dateText || 'Date'}</Text>
               </TouchableOpacity>
               <DateTimePicker
                 isVisible={this.state.isDateTimePickerVisible}
                 onConfirm={this._handleDatePicked}
                 onCancel={this._hideDateTimePicker}
-                date={this.state.date}
+                date={this.state.eventDate}
                 minimumDate={new Date()}
               />
             </View>
@@ -423,10 +445,10 @@ const styles = StyleSheet.create({
 })
 
 const AddMutation = gql`
-  mutation addForum($new_forum: Event!) {
-    addForum(forum: $new_forum) {
+  mutation addEvent($new_event: EventObject!) {
+    addEvent(event: $new_event) {
       ok
-      forum{
+      event{
         id
         eventDate
         title
@@ -439,12 +461,12 @@ const AddMutation = gql`
   }
 `;
 
-// export default graphql(AddMutation, {
-//   props: ({mutate}) => ({
-//     submit: (new_forum) => mutate({
-//       variables: { ...new_forum }
-//     })
-//   })
-// })(AddEvent)
+export default graphql(AddMutation, {
+  props: ({mutate}) => ({
+    submit: (new_event) => mutate({
+      variables: { ...new_event }
+    })
+  })
+})(AddEvent)
 
-export default AddEvent
+// export default AddEvent

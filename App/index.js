@@ -1,9 +1,10 @@
 import React, {Component} from 'react'
-import { StyleSheet,Text } from 'react-native'
+import { StyleSheet, } from 'react-native'
 import { Router, Tabs, Scene, Modal } from 'react-native-router-flux'
 
 import themeStyle from './config/style'
 
+import Splash from './screens/Splash'
 import Register from './screens/Register'
 import Login from './screens/Login'
 import Home from './screens/Home'
@@ -33,16 +34,20 @@ const App  = () => {
     <Router>
       <Scene key='root'>
 
+      <Scene key='splash'
+        hideNavBar
+        component={Splash}
+        initial
+        />
+
         <Scene key='login'
           hideNavBar
           component={Login}
-          // initial
           />
 
           <Scene key='register'
             hideNavBar
             component={Register}
-            // initial
             />
 
           <Tabs key='homeTabBar'
@@ -51,7 +56,6 @@ const App  = () => {
             showLabel={false}
             animationEnabled={false}
             swipeEnabled={false}
-            initial
             hideNavBar
             icon={TabIcon}>
 

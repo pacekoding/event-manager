@@ -36,9 +36,10 @@ export default class AddButton extends Component<{}> {
   }
 
   handlePress = () => {
-    const { hideModal, type } = this.props
+    const { hideModal, type, openModal } = this.props
     if(hideModal) hideModal()
-    if(type === 'activity') Actions.addActivity()
+    if(type == 'activity') Actions.addActivity()
+    else if(type == 'forum' || type == 'members') openModal()
     else Actions.add()
   }
 
@@ -58,7 +59,7 @@ export default class AddButton extends Component<{}> {
             backgroundColor:'#F50057'
           }}
           raised
-          name='add'
+          name={this.props.icon||'add'}
           type='material-icons'
           color='#FFFFFF'
           size={28}

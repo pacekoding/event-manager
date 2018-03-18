@@ -13,13 +13,14 @@ import {
   ScrollView,
   Image,
   Button,
-  AsyncStorage
+  AsyncStorage,
+  Alert
 } from 'react-native'
 import DateTimePicker from 'react-native-modal-datetime-picker'
 import { Icon } from 'react-native-elements'
 import { Actions } from 'react-native-router-flux'
 import * as Crop from 'react-native-image-crop-picker'
-import { graphql } from 'react-apollo'
+import { graphql,compose } from 'react-apollo'
 import gql from 'graphql-tag'
 import moment from 'moment'
 
@@ -32,8 +33,9 @@ class EditEvent extends Component<{}> {
   constructor(){
     super()
     this.state = {
-      // tempPictures: ['file:///data/user/0/com.eventmanager/cache/react-native-image-crop-picker/343e3adf-35a3-45ca-88d9-6103fd387940.jpg'],
-      tempPictures: [],
+      id: '',
+      pictures: [],
+      path: [],
       title: '',
       description: '',
       isDateTimePickerVisible: false,
@@ -43,33 +45,35 @@ class EditEvent extends Component<{}> {
    }
   }
 
- componentWillMount() {
-    BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
-  }
+  componentWillMount() {
+     BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
+   }
 
-  componentWillUnmount () {
-    BackHandler.removeEventListener('hardwareBackPress', this.backNavigation)
-  }
+   componentWillUnmount () {
+     BackHandler.removeEventListener('hardwareBackPress', this.backNavigation)
+   }
+
+   backNavigation = async () => {
+     // const dataUser = await AsyncStorage.getItem('dataUser')
+     // const UserId = JSON.parse(dataUser).id
+     // Actions.event({ type: 'replace', UserId })
+     Actions.pop()
+     return true
+   }
 
   componentDidMount() {
-    this.handleDetail()
-  }
-
-  backNavigation = () => {
-    Actions.pop()
-    return true
-  }
-
-  handleDetail = async () => {
-    const detailEvent = await AsyncStorage.getItem('detailEvent')
-    const { id,title,pictures,content,eventDate } = JSON.parse(detailEvent)
-    this.setState({
-      title,
-      tempPictures: pictures,
-      description: content,
-      dateText: moment(eventDate).format('LL'),
-      date: new Date(eventDate)
-    })
+    if(this.props.detailEvent) {
+      const { id,title,pictures,content,eventDate } = this.props.detailEvent
+      this.setState({
+        id,
+        title,
+        pictures,
+        path: pictures.map(item => (item.path)),
+        description: content,
+        dateText: moment(eventDate).format('LL'),
+        date: new Date(eventDate)
+      })
+    }
   }
 
   handleModal = () => this.setState(prevState => ({ showModal: !prevState.showModal }))
@@ -81,7 +85,7 @@ class EditEvent extends Component<{}> {
   deletePicture = (index) => {
     this.setState(prevState => {
       return {
-        tempPictures: prevState.tempPictures.filter((data,i) =>  index !== i)
+        pictures: prevState.pictures.filter((data,i) =>  index !== i)
       }
     })
   }
@@ -91,7 +95,12 @@ class EditEvent extends Component<{}> {
       const image = await Crop.default.openCamera({width: width, height: width+(width*0.35), cropping: true})
       const postData = new FormData()
       postData.append('file', { uri: image.path, type: 'image/jpg', name: 'qluster.jpg' })
-      this.setState(prevState => ({ tempPictures:[image.path,...prevState.tempPictures] }), this.handleModal())
+      const data = await upload(postData)
+
+      this.setState(prevState => ({
+        pictures:[image.path, ...prevState.pictures],
+        path:[data.result, ...prevState.path]
+      }), this.handleModal() )
     }
     catch(err) {
       this.handleModal()
@@ -103,7 +112,12 @@ class EditEvent extends Component<{}> {
       const image = await Crop.default.openPicker({width: width, height: width+(width*0.35), cropping: true})
       const postData = new FormData()
       postData.append('file', { uri: image.path, type: 'image/jpg', name: 'qluster.jpg' })
-      this.setState(prevState => ({ tempPictures:[image.path,...prevState.tempPictures] }), this.handleModal())
+      const data = await upload(postData)
+
+      this.setState(prevState => ({
+        pictures:[image.path, ...prevState.pictures],
+        path:[data.result, ...prevState.path]
+      }), this.handleModal() )
     }
     catch(err) {
       this.handleModal()
@@ -111,17 +125,69 @@ class EditEvent extends Component<{}> {
   }
 
   handleChange = async () => {
-    // const { submit } = this.props
-    // const new_forum = {
-    //   title:"this",
-    //   content:"that",
-    //   UserId:"jcd7caw7",
-    //   picturePath:"https://image.freepik.com/free-photo/cute-cat-picture_1122-449.jpg",
-    //   eventDate:"12 august 2012"
-    // }
-    //
-    // const res = await submit({ new_forum })
-    //  console.log('add data',res.data);
+    const dataUser = await AsyncStorage.getItem('dataUser')
+    const UserId = JSON.parse(dataUser).id
+
+    const { editData } = this.props
+    const {
+      title,
+      content,
+      path,
+      eventDate
+    } = this.state
+
+    const edit_event = {
+      EventId:this.props.detailEvent.id,
+      title,
+      content,
+      path,
+      eventDate
+    }
+    console.log('test123',edit_event);
+    const res = await editData({ edit_event })
+    Actions.event({ type: 'replace', UserId })
+  }
+
+  handleDelete = () => {
+    Alert.alert(
+      'Delete Event',
+      'Are you sure?',
+      [
+        {text: 'Yes', onPress: this.deleteEvent},
+        {text: 'No', onPress: () => {}, style: 'cancel'},
+      ],
+      { cancelable: false }
+    )
+  }
+
+  deleteEvent = async () => {
+    try {
+      const dataUser = await AsyncStorage.getItem('dataUser')
+      const UserId = JSON.parse(dataUser).id
+      const res = await this.props.deteleData(this.props.detailEvent.id)
+
+      if(res) {
+        Alert.alert(
+          'Info',
+          'Delete Success',
+          [
+            {text: 'Ok', onPress: () => {}, style: 'cancel'},
+          ],
+          { cancelable: false }
+        )
+      }
+      Actions.event({ type: 'replace', UserId })
+    }
+    catch (err) {
+      Alert.alert(
+        'Info',
+        'Delete Failed',
+        [
+          {text: 'Ok', onPress: () => {}, style: 'cancel'},
+        ],
+        { cancelable: false }
+      )
+    }
   }
 
   _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true });
@@ -134,7 +200,7 @@ class EditEvent extends Component<{}> {
   };
 
   render() {
-    console.log(this.props);
+
     return (
       <View style={styles.container}>
         <View style={styles.content}>
@@ -142,15 +208,16 @@ class EditEvent extends Component<{}> {
           <ScrollView>
             <ScrollView horizontal={true} style={{marginLeft:10, marginRight:10}}>
               <View style={styles.viewRowScroll}>
-                {this.state.tempPictures.map((item, index) => (
+                {this.state.pictures.map((item, index) => (
                   <View key={index} style={{marginRight:8}}>
                     <Image source={{uri:item.path}} style={styles.imgRespon} />
                     <TouchableOpacity style={styles.viewBelumDitanggapi}
                       onPress={() => this.deletePicture(index)}>
                       <Icon
-                        name='close-circle-outline'
-                        type='material-community'
-                        color='#C62828'
+                        containerStyle={{backgroundColor: '#EEEEEE', height:20, width:20, borderRadius: 20/2}}
+                        name='x-circle'
+                        type='feather'
+                        color='#D32F2F'
                         size={20}
                       />
                     </TouchableOpacity>
@@ -222,7 +289,7 @@ class EditEvent extends Component<{}> {
                 size={24}
               />
               <TouchableOpacity onPress={this._showDateTimePicker}>
-                <Text style={[styles.dateInput,{color: this.state.dateText ? '#000000' : '#A2A2A2'}]}>{this.state.dateText || 'Februari 16, 2018'}</Text>
+                <Text style={[styles.dateInput,{color: this.state.dateText ? '#000000' : '#A2A2A2'}]}>{this.state.dateText}</Text>
               </TouchableOpacity>
               <DateTimePicker
                 isVisible={this.state.isDateTimePickerVisible}
@@ -238,6 +305,10 @@ class EditEvent extends Component<{}> {
 
           <TouchableOpacity style={styles.buttonChange} onPress={this.handleChange}>
             <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>CHANGE</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.buttonDelete} onPress={this.handleDelete}>
+            <Text style={{fontSize:15,fontWeight:'bold',color:'#F44336'}}>DELETE</Text>
           </TouchableOpacity>
 
         </View>
@@ -276,7 +347,6 @@ class EditEvent extends Component<{}> {
     );
   }
 }
-
 
 const styles = StyleSheet.create({
     container: {
@@ -429,7 +499,7 @@ const styles = StyleSheet.create({
     },
     viewBelumDitanggapi: {
       position: 'absolute',
-      top:2,
+      top:5,
       right: 5
     },
     viewRowScroll: {
@@ -442,51 +512,57 @@ const styles = StyleSheet.create({
       alignItems:'center',
       justifyContent:'center',
       backgroundColor: '#2196F3',
+      elevation: 1
+    },
+    buttonDelete: {
+      marginTop:5,
+      marginBottom:5,
+      height:50,
+      alignItems:'center',
+      justifyContent:'center',
+      backgroundColor: '#FFFFFF',
+      borderWidth: 0.5,
+      borderColor: '#F44336',
+      elevation: 1
     }
 })
 
-// const editMutation = gql`
-//   mutation editForum($new_forum: Event!) {
-//     editForum(forum: $new_forum) {
-//       ok
-//       forum{
-//         id
-//         eventDate
-//         title
-//         content
-//       }
-//       errors {
-//         message
-//       }
-//     }
-//   }
-// `;
+const editEvent = gql`
+  mutation editEvent($edit_event: EventObject!) {
+    editEvent(event: $edit_event) {
+      ok
+      errors {
+        message
+      }
+    }
+  }
+`;
 
-// export default graphql(AddMutation, {
-//   props: ({mutate}) => ({
-//     submit: (new_forum) => mutate({
-//       variables: { ...new_forum }
-//     })
-//   })
-// })(AddEvent)
+const deleteEvent = gql`
+  mutation deleteEvent($EventId: ID!) {
 
-// const Events = gql`
-//   query Events ($userId:ID!) {
-//     events (UserId: $userId) {
-//       id
-//       title
-//       content
-//       pictures {
-//         id
-//         path
-//       },
-//       eventDate
-//     }
-//   }
-// `;
-//
-// export default graphql(Events, {
-//   options : { variables: { userId } }
-// })(Home);
+    deleteEvent(EventId: $EventId) {
+      ok
+      errors {
+        message
+      }
+    }
+  }
+`;
 
-export default EditEvent
+export default compose(
+  graphql(editEvent, {
+    props: ({mutate}) => ({
+      editData: (edit_event) => mutate({
+        variables: { ...edit_event }
+      })
+    })
+  }),
+  graphql(deleteEvent, {
+    props: ({mutate}) => ({
+      deteleData: (EventId) => mutate({
+        variables: { EventId }
+      })
+    })
+  }),
+)(EditEvent)

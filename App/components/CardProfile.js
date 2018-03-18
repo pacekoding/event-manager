@@ -9,9 +9,9 @@ import {
 const CardProfile = ({item}) => {
   return(
     <View style={styles.container}>
-      <Image style={styles.picture} source={{uri:'http://www.bestfan.com/blog/wp-content/uploads/2012/02/237-jay-z-e1328654292320.jpg'}}></Image>
+      <Image style={styles.picture} source={{ uri: item.profilePicture }}></Image>
       <View style={styles.textContainer}>
-        <Text style={styles.nameText}>{item.name}</Text>
+        <Text style={styles.nameText}>{ item.firstName }</Text>
       </View>
     </View>
   )

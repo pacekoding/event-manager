@@ -12,7 +12,8 @@ import {
   Modal,
   ScrollView,
   Image,
-  Button
+  Button,
+  AsyncStorage
 } from 'react-native'
 import DateTimePicker from 'react-native-modal-datetime-picker'
 import { Dropdown } from 'react-native-material-dropdown';
@@ -23,6 +24,8 @@ import { graphql } from 'react-apollo'
 import gql from 'graphql-tag'
 import moment from 'moment'
 
+import {upload} from '../lib/helpers'
+
 const {width} = Dimensions.get('window')
 
 class AddActivity extends Component<{}> {
@@ -30,18 +33,20 @@ class AddActivity extends Component<{}> {
   constructor(){
     super()
     this.state = {
-      tempPictures: [],
-      title: '',
+      pictures: [],
+      path: [],
+      isIncome: false,
       description: '',
-      amount: '',
-      isDateTimePickerVisible: false,
-      date: new Date(),
+      value: '',
+      isVerified: true,
+      incomeExpenseDate: new Date(),
       dateText: '',
-      showModal: false
+      isDateTimePickerVisible: false,
+      showModal: false,
    }
   }
 
- componentWillMount() {
+  componentWillMount() {
     BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
   }
 
@@ -56,16 +61,16 @@ class AddActivity extends Component<{}> {
 
   handleModal = () => this.setState(prevState => ({ showModal: !prevState.showModal }))
 
-  onChangeTitle = title => this.setState({ title })
+  onChangeIsIncome= isIncome => this.setState({ isIncome })
 
   onChangeDescription = description => this.setState({ description })
 
-  onChangeAmount = amount => this.setState({ amount })
+  onChangeValue = value => this.setState({ value: Number(value) })
 
   deletePicture = (index) => {
     this.setState(prevState => {
       return {
-        tempPictures: prevState.tempPictures.filter((data,i) =>  index !== i)
+        pictures: prevState.pictures.filter((data,i) =>  index !== i)
       }
     })
   }
@@ -75,7 +80,12 @@ class AddActivity extends Component<{}> {
       const image = await Crop.default.openCamera({width: width, height: width+(width*0.35), cropping: true})
       const postData = new FormData()
       postData.append('file', { uri: image.path, type: 'image/jpg', name: 'qluster.jpg' })
-      this.setState(prevState => ({ tempPictures:[image.path,...prevState.tempPictures] }), this.handleModal())
+      const data = await upload(postData)
+
+      this.setState(prevState => ({
+        pictures:[image.path, ...prevState.pictures],
+        path:[data.result, ...prevState.path]
+      }), this.handleModal() )
     }
     catch(err) {
       this.handleModal()
@@ -87,7 +97,12 @@ class AddActivity extends Component<{}> {
       const image = await Crop.default.openPicker({width: width, height: width+(width*0.35), cropping: true})
       const postData = new FormData()
       postData.append('file', { uri: image.path, type: 'image/jpg', name: 'qluster.jpg' })
-      this.setState(prevState => ({ tempPictures:[image.path,...prevState.tempPictures] }), this.handleModal())
+      const data = await upload(postData)
+
+      this.setState(prevState => ({
+        pictures:[image.path, ...prevState.pictures],
+        path:[data.result, ...prevState.path]
+      }), this.handleModal() )
     }
     catch(err) {
       this.handleModal()
@@ -95,27 +110,48 @@ class AddActivity extends Component<{}> {
   }
 
   handleAdd = async () => {
-    // const { submit } = this.props
-    // const new_forum = {
-    //   title:"this",
-    //   content:"that",
-    //   UserId:"jcd7caw7",
-    //   picturePath:"https://image.freepik.com/free-photo/cute-cat-picture_1122-449.jpg",
-    //   eventDate:"12 august 2012"
-    // }
-    //
-    // const res = await submit({ new_forum })
-    //  console.log('add data',res.data);
+    const { submit } = this.props
+    const dataUser = await AsyncStorage.getItem('dataUser')
+    const detailEvent = await AsyncStorage.getItem('detailEvent')
+    const UserId = JSON.parse(dataUser).id
+    const EventId = JSON.parse(detailEvent).id
+
+    const {
+      isIncome,
+      description,
+      incomeExpenseDate,
+      isVerified,
+      path,
+      value
+    } = this.state
+
+    const inc_exp = {
+      isIncome,
+      EventId,
+      UserId,
+      description,
+      verified:isVerified,
+      incomeExpenseDate: moment(incomeExpenseDate).format('LL'),
+      path,
+      value
+    }
+    console.log(inc_exp);
+    const res = await submit({ inc_exp })
+     console.log('add data',res.data);
   }
 
-  _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true });
+  _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true })
 
-  _hideDateTimePicker = () => this.setState({ isDateTimePickerVisible: false });
+  _hideDateTimePicker = () => this.setState({ isDateTimePickerVisible: false })
 
-  _handleDatePicked = (date) => {
-    this.setState({ date,dateText: moment(date).format('LL') })
+  _handleDatePicked = (incomeExpenseDate) => {
+    this.setState({ incomeExpenseDate, dateText: moment(incomeExpenseDate).format('LL') })
     this._hideDateTimePicker();
-  };
+  }
+
+  handleIsIncome = (isIncome) => this.setState({ isIncome: isIncome === 'Income' })
+
+  handleVerified = (isVerified) => this.setState({ isVerified: isVerified === 'Verified' })
 
   render() {
     return (
@@ -125,15 +161,16 @@ class AddActivity extends Component<{}> {
           <ScrollView>
             <ScrollView horizontal={true} style={{marginLeft:10, marginRight:10}}>
               <View style={styles.viewRowScroll}>
-                {this.state.tempPictures.map((item, index) => (
+                {this.state.pictures.map((item, index) => (
                   <View key={index} style={{marginRight:8}}>
                     <Image source={{uri:item}} style={styles.imgRespon} />
                     <TouchableOpacity style={styles.viewBelumDitanggapi}
                       onPress={() => this.deletePicture(index)}>
                       <Icon
-                        name='close-circle-outline'
-                        type='material-community'
-                        color='#C62828'
+                        containerStyle={{backgroundColor: '#EEEEEE', height:20, width:20, borderRadius: 20/2}}
+                        name='x-circle'
+                        type='feather'
+                        color='#D32F2F'
                         size={20}
                       />
                     </TouchableOpacity>
@@ -172,6 +209,7 @@ class AddActivity extends Component<{}> {
                 fontSize={14}
                 dropdownPosition={-2}
                 data={[{ value: 'Expense' },{ value: 'Income' }]}
+                onChangeText={ this.handleIsIncome }
               />
             </View>
 
@@ -212,7 +250,7 @@ class AddActivity extends Component<{}> {
                 placeholderTextColor={'#A2A2A2'}
                 returnKeyType='next'
                 underlineColorAndroid='transparent'
-                onChangeText={this.onChangeAmount}
+                onChangeText={this.onChangeValue}
                 style={styles.textInput} />
             </View>
 
@@ -236,29 +274,7 @@ class AddActivity extends Component<{}> {
                 lineWidth={0}
                 dropdownPosition={-2}
                 data={[{ value: 'Verified' },{ value: 'Unverified' }]}
-              />
-            </View>
-
-            <View style={styles.line} />
-
-            <View style={styles.formDropDown}>
-              <Icon
-                name='group'
-                type='material-icons'
-                color='#4fc3f7'
-                size={24}
-              />
-              <Dropdown
-                containerStyle={styles.dropDownContainer}
-                pickerStyle={[styles.pickerStyle]}
-                label='Division'
-                fontSize={14}
-                textColor='#212121'
-                animationDuration={150}
-                value={'Finance'}
-                lineWidth={0}
-                dropdownPosition={3.5}
-                data={[{ value: 'Finance' },{ value: 'Creative' },{ value: 'Transportation' },{ value: 'Security' }]}
+                onChangeText={ this.handleVerified }
               />
             </View>
 
@@ -278,7 +294,7 @@ class AddActivity extends Component<{}> {
                 isVisible={this.state.isDateTimePickerVisible}
                 onConfirm={this._handleDatePicked}
                 onCancel={this._hideDateTimePicker}
-                date={this.state.date}
+                date={this.state.incomeExpenseDate}
               />
             </View>
 
@@ -505,28 +521,27 @@ const styles = StyleSheet.create({
 })
 
 const AddMutation = gql`
-  mutation addForum($new_forum: Event!) {
-    addForum(forum: $new_forum) {
-      ok
-      forum{
+mutation addIncExp($inc_exp:IncExpObject){
+  addIncExp(IncExp:$inc_exp){
+    ok
+    incomeExpense {
+      id
+      verified
+      user {
         id
-        eventDate
-        title
-        content
-      }
-      errors {
-        message
       }
     }
+    errors
   }
+}
 `;
 
-// export default graphql(AddMutation, {
-//   props: ({mutate}) => ({
-//     submit: (new_forum) => mutate({
-//       variables: { ...new_forum }
-//     })
-//   })
-// })(AddActivity)
+export default graphql(AddMutation, {
+  props: ({mutate}) => ({
+    submit: (inc_exp) => mutate({
+      variables: { ...inc_exp }
+    })
+  })
+})(AddActivity)
 
-export default AddActivity
+// export default AddActivity

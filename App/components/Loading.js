@@ -2,27 +2,28 @@ import React, {Component} from 'react'
 import {
   StyleSheet,
   View,
-  Text,
+  ActivityIndicator
 } from 'react-native'
 import {
   Icon
 } from 'react-native-elements'
 
-import Empty from '../components/Empty'
+//clipboard-alert
 
-export default class Invite extends Component<{}> {
-
-  render(){
+export default Loading = ({visible}) => {
+  if (visible)
     return(
       <View style={styles.container}>
-        <Empty name='clipboard-alert' type= 'material-community' message='Empty Data' />
+        <ActivityIndicator size="large" color="#0091EA" />
       </View>
     )
-  }
+  return null
 }
 
 const styles = StyleSheet.create({
   container:{
-    flex:1
+    flex:1,
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 })

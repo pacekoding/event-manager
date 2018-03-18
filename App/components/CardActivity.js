@@ -6,8 +6,7 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
-  AsyncStorage,
-  Animated
+  AsyncStorage
 } from 'react-native'
 import {
   Icon,
@@ -15,6 +14,7 @@ import {
 import {Actions} from 'react-native-router-flux'
 import Swiper from 'react-native-swiper'
 import moment from 'moment'
+import { convert } from '../lib/helpers'
 
 const {width, height} = Dimensions.get('window')
 const imageWidth = width - width * 0.1
@@ -23,13 +23,14 @@ const imageHeight = width - width * 0.1
 const CardActivity = ({item,index,parent}) => {
 
   const {
-    type,
-    images,
-    total,
-    date,
-    group,
-    detail,
-    isVerified
+    id,
+    pictures,
+    isIncome,
+    value,
+    user,
+    description,
+    verified,
+    createdAt
   } = item
 
   const {
@@ -39,21 +40,23 @@ const CardActivity = ({item,index,parent}) => {
     _panResponder
   } = parent
 
-  const titleColor = type === 'INPUT' ? '#00C853' : '#DD2C00'
-  const iconName = type === 'INPUT' ? 'basket-fill' : 'basket-unfill'
-  const verifiedIcon = isVerified ? 'verified' : 'unverified'
-  const verifiedColor = isVerified ? '#00C853' : '#F57C00'
-  const status = isVerified ? 'Verified' : 'Unverified'
+  const title = isIncome ? 'INCOME' : 'EXPENSE'
+  const titleColor = isIncome ? '#00C853' : '#DD2C00'
+  const iconName = isIncome ? 'basket-fill' : 'basket-unfill'
+  const verifiedIcon = verified ? 'verified' : 'unverified'
+  const verifiedColor = verified ? '#00C853' : '#F57C00'
+  const status = verified ? 'Verified' : 'Unverified'
+
 
   return(
     <View style={styles.container}>
       {
         (isOpen && sIndex==index) &&
         <View style={styles.modalContainer}>
-          <TouchableOpacity style={[styles.optionContainer,{marginBottom: 10}]} onPress={() => handleModal('edit')}>
+          <TouchableOpacity style={[styles.optionContainer,{marginBottom: 10}]} onPress={() => handleModal({type: 'edit',item})}>
             <Text style={styles.optionsText}>Edit</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.optionContainer,{marginTop: 10}]} onPress={() => handleModal('delete')}>
+          <TouchableOpacity style={[styles.optionContainer,{marginTop: 10}]} onPress={() => handleModal({type: 'delete',id})}>
             <Text style={styles.optionsText}>Delete</Text>
           </TouchableOpacity>
         </View>
@@ -62,9 +65,9 @@ const CardActivity = ({item,index,parent}) => {
       <View style={styles.headerContainer}>
         <View style={{flex: 1}} />
         <View style={{flex: 5, alignItems: 'center'}}>
-          <Text style={[styles.headerText,{color:titleColor}]}>{type}</Text>
+          <Text style={[styles.headerText,{color:titleColor}]}>{title}</Text>
         </View>
-        <TouchableOpacity style={{flex:1,height:60, justifyContent: 'center',}} onPress={() => handleModal('show',index)}>
+        <TouchableOpacity style={{flex:1,height:60, justifyContent: 'center',}} onPress={() => handleModal({ type: 'show', index })}>
           <Icon
             name='dots-vertical'
             type='material-community'
@@ -73,7 +76,7 @@ const CardActivity = ({item,index,parent}) => {
         </TouchableOpacity>
       </View>
       {
-        images.length !== 0 &&
+        pictures.length !== 0 &&
       <View>
         <View style={[styles.line,{marginBottom:10}]} />
         <View style={styles.swiperContainer}>
@@ -100,9 +103,9 @@ const CardActivity = ({item,index,parent}) => {
                   marginTop: 6,
                   marginBottom: 0}} />}
             >
-            { images.map((item, index) => (
-              <View style={styles.slide} key={index}>
-                <Image source={{uri: item}} style={styles.imageEvent} />
+            { pictures.map((item, index) => (
+              <View style={styles.slide} key={item.id}>
+                <Image source={{uri: item.path}} style={styles.imageEvent} />
               </View>
             ))}
           </Swiper>
@@ -110,7 +113,7 @@ const CardActivity = ({item,index,parent}) => {
       </View>
       }
       <View style={styles.totalContainer}>
-        <Text style={styles.totalText}>Rp.{total}</Text>
+        <Text style={styles.totalText}>Rp. {convert(value)}</Text>
         <View style={{flexDirection:'row', justifyContent:'space-around',justifyContent:'center'}}>
           <Icon
             name={verifiedIcon}
@@ -126,18 +129,18 @@ const CardActivity = ({item,index,parent}) => {
 
       <View>
         <View style={styles.detailContentText}>
-          <Text style={styles.dataText}>{detail}</Text>
+          <Text style={styles.dataText}>{description}</Text>
         </View>
 
         <View style={styles.line} />
 
         <View style={styles.detailContentText}>
           <Icon
-            name='group'
-            type='material-icons'
+            name='user'
+            type='font-awesome'
             color='#616161'
             />
-          <Text style={styles.dataText}>{group}</Text>
+          <Text style={styles.dataText}>{user.firstName +" "+user.lastName}</Text>
         </View>
         <View style={styles.detailContentText}>
           <Icon
@@ -145,7 +148,7 @@ const CardActivity = ({item,index,parent}) => {
             type='material-community'
             color='#616161'
             />
-          <Text style={styles.dataText}>{date}</Text>
+          <Text style={styles.dataText}>{moment(createdAt).format('LL')}</Text>
         </View>
       </View>
     </View>
@@ -234,7 +237,6 @@ const styles = StyleSheet.create({
     marginLeft:5
   },
   detailContentText: {
-    width: '99%',
     flexDirection: 'row',
     paddingLeft: 10,
     marginTop: 10,

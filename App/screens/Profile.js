@@ -3,19 +3,77 @@ import {
   StyleSheet,
   View,
   Text,
-  Image
+  Image,
+  TouchableOpacity,
+  AsyncStorage,
+  Alert,
+  BackHandler
 } from 'react-native'
 import {
   Icon
 } from 'react-native-elements'
+import { Actions } from 'react-native-router-flux'
 
 export default class Profile extends Component<{}> {
 
+  constructor(){
+    super()
+    this.state = {
+      email: '',
+      profilePicture: ''
+   }
+  }
+
+  componentWillMount() {
+     BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
+   }
+
+   componentWillUnmount () {
+     BackHandler.removeEventListener('hardwareBackPress', this.backNavigation)
+   }
+
+  componentDidMount() {
+    this.handleDetail()
+  }
+
+  backNavigation = () => {
+    Actions.homeTabBar()
+    return true
+  }
+
+  handleDetail = async () => {
+    const dataUser = await AsyncStorage.getItem('dataUser')
+    console.log('dataUser',dataUser);
+    const { email, profilePicture } = JSON.parse(dataUser)
+    this.setState({
+      email,
+      profilePicture
+    })
+  }
+
+  logout = () => {
+    Actions.login()
+    AsyncStorage.clear()
+  }
+
+  handleLogout = () => {
+    Alert.alert(
+      'Log Out',
+      'Are you sure?',
+      [
+         {text: 'Yes', onPress: this.logout},
+         {text: 'No', onPress: () => {}, style: 'cancel'},
+       ],
+       { cancelable: false }
+    )
+  }
+
   render(){
+    const { email,profilePicture } = this.state
     return(
       <View style={styles.container}>
         <View style={styles.profile}>
-          <Image style={styles.picture} source={{uri:'https://3.bp.blogspot.com/-vn5bT6EWO6E/VzB0hEtSrII/AAAAAAAACJ8/5GBuFRo6ImM-BCeD3z9XWejA45Y5ZmLVgCLcB/s1600/Beyonce-no-gravity-mp3-download.jpg'}} />
+          <Image style={styles.picture} source={{ uri: profilePicture }} />
         </View>
         <View style={styles.card}>
           <Icon
@@ -25,9 +83,9 @@ export default class Profile extends Component<{}> {
             size={30}
             containerStyle={styles.icon}
           />
-          <Text>{'beyonce@seksehh.com'}</Text>
+          <Text>{email}</Text>
         </View>
-        <View style={styles.card}>
+        <TouchableOpacity style={styles.card} onPress={this.handleLogout}>
           <Icon
             name='logout-variant'
             type='material-community'
@@ -36,7 +94,7 @@ export default class Profile extends Component<{}> {
             containerStyle={styles.icon}
           />
           <Text>Logout</Text>
-        </View>
+        </TouchableOpacity>
       </View>
     )
   }

@@ -9,31 +9,34 @@ import {
   RefreshControl,
   BackHandler,
   Alert,
-  PanResponder
+  PanResponder,
+  AsyncStorage
 } from 'react-native'
 import {
-  Card,
-  Button,
   Icon,
-  Divider
 } from 'react-native-elements'
 import {OptimizedFlatList} from 'react-native-optimized-flatlist'
 import {Actions} from 'react-native-router-flux'
+import { graphql } from 'react-apollo'
+import gql from 'graphql-tag'
 
 //components
-import {AddButton, CardActivity} from '../components'
-///data dummy
-import {activities} from '../lib/dummy.js'
+import {
+  AddButton,
+  CardActivity,
+  Empty,
+  Loading,
+} from '../components'
 
 const {height,width} = Dimensions.get('window')
 
-export default class Activities extends Component<{}> {
+class Activities extends Component<{}> {
 
   constructor () {
     super()
     this.state = {
       activities: [],
-      isFetching: false,
+      isFetching: true,
       sIndex: 0,
       isOpen: false
     }
@@ -44,7 +47,6 @@ export default class Activities extends Component<{}> {
      this._panResponder = PanResponder.create({
        onStartShouldSetPanResponder: (evt, gestureState) => true,
        onPanResponderGrant: (evt, gestureState) => {
-         console.log('asdf');
           this.hideModal()
        },
      })
@@ -55,7 +57,7 @@ export default class Activities extends Component<{}> {
    }
 
   componentDidMount () {
-    this.fetchData()
+    this.handleDetail()
   }
 
   backNavigation = () => {
@@ -67,52 +69,41 @@ export default class Activities extends Component<{}> {
     this.setState({isOpen: false})
   }
 
-  fetchData () {
-    setTimeout(() => {
-      this.setState({activities, isFetching: false})
-    },2000)
+  handleDetail = async () => {
+    const incomeExpense = await AsyncStorage.getItem('incomeExpense')
+    this.setState({
+      activities: JSON.parse(incomeExpense),
+      isFetching: false
+    })
   }
 
-  _onRefresh = () => {
-    this.setState({isFetching:true},() => this.fetchData())
-  }
-
-  _refreshControl () {
-    return <RefreshControl
-        refreshing={this.state.isFetching}
-        onRefresh={this._onRefresh}
-        title="Pull to refresh"
-        tintColor="#fff"
-        titleColor="#fff"
-        colors={['#F50057','#00C853','#0091EA']}
-     />
-  }
-
-  handleEdit () {
+  handleEdit (item) {
     this.hideModal()
-    Actions.editActivity()
+    Actions.editActivity({item})
   }
 
-  deleteActivity = () => {
+  deleteActivity = (id) => {
     this.hideModal()
+    this.props.deteleData(id)
+
   }
 
-  handleDelete () {
+  handleDelete (id) {
     Alert.alert(
       'Delete Activities',
       'Are you sure?',
       [
-        {text: 'Yes', onPress: this.deleteActivity},
+        {text: 'Yes', onPress: () => this.deleteActivity(id)},
         {text: 'No', onPress: this.hideModal, style: 'cancel'},
       ],
       { cancelable: false }
     )
   }
 
-  handleModal = (params,index) => {
+  handleModal = ({type,item,id,index}) => {
     this.setState({isOpen: true,sIndex:index})
-    if(params === 'delete') this.handleDelete()
-    if(params === 'edit') this.handleEdit()
+    if(type === 'delete') this.handleDelete(id)
+    if(type === 'edit') this.handleEdit(item)
   }
 
   _renderItem = ({item,index},parent) => {
@@ -122,24 +113,55 @@ export default class Activities extends Component<{}> {
   render(){
     const parent = {
       isOpen: this.state.isOpen,
-      handleModal :this.handleModal,
+      handleModal : this.handleModal,
       sIndex: this.state.sIndex,
       _panResponder: this._panResponder
     }
+    const { activities, isFetching } = this.state
+    const isEmpty = activities.length === 0
     return(
       <View style={styles.container} {...this._panResponder.panHandlers}>
-        <OptimizedFlatList
-          style={{flex:1}}
-          data={activities}
-          keyExtractor={(item, index) => String(index)}
-          renderItem={(props) => this._renderItem(props,parent)}
-          refreshControl={this._refreshControl()}
-        />
-        <AddButton type={'activity'} hideModal={this.hideModal} />
+        <Loading visible={isFetching}/>
+        {
+          !isFetching && !isEmpty ?
+          <View style={{ flex:1 }}>
+            <OptimizedFlatList
+              style={{ flex:1 }}
+              data={activities}
+              keyExtractor={(item, index) => String(index)}
+              renderItem={(props) => this._renderItem(props,parent)}
+            />
+            <AddButton type={'activity'} hideModal={this.hideModal} />
+          </View>
+          : !isFetching && isEmpty &&
+          <View style={{ flex:1 }}>
+            <Empty name={'alert-box'} type={'material-community'} message={'Empty Data'} />
+            <AddButton type={'activity'} hideModal={this.hideModal} />
+          </View>
+        }
       </View>
     )
   }
 }
+
+const deleteIncExp = gql`
+  mutation deleteIncExp($IncomeExpenseId: ID!) {
+    deleteIncExp(IncomeExpenseId: $IncomeExpenseId) {
+      ok
+      errors
+    }
+  }
+`;
+
+export default graphql(deleteIncExp, {
+  props: ({mutate}) => ({
+    deteleData: (IncomeExpenseId) => mutate({
+      variables: { IncomeExpenseId }
+    })
+  })
+})(Activities)
+
+
 
 const styles = StyleSheet.create({
   container: {

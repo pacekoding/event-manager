@@ -3,11 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
   Dimensions,
   TouchableOpacity,
-  Picker,
-  AsyncStorage,
 } from 'react-native'
 import {
   Icon,
@@ -17,61 +14,53 @@ import Swiper from 'react-native-swiper'
 import moment from 'moment'
 
 const {width} = Dimensions.get('window')
-const imageWidth = width - width * 0.1
-const imageHeight = width - width * 0.1
 
-const CardEvent = ({item}) => {
+const CardEvent = ({item,index,parent}) => {
   const {
     id,
     title,
-    pictures,
     content,
-    date
+    messages,
+    createdAt
   } = item
 
-  const totalComments = 4
-  const hasPictures = pictures && pictures.length !== 0
-  const dateText = moment(new Date()).format('LL')
+  const totalComments = messages.length
+  const dateText = moment(createdAt).format('LL')
   const dueDateColor = '#757575'
+
+  const {
+    isOpen,
+    handleModal,
+    sIndex,
+  } = parent
 
   return(
     <View style={styles.container}>
-    {
-      hasPictures &&
-      <View style={styles.swiperContainer}>
-        <Swiper
-          loop={false}
-          dot={
-            <View style={{
-                backgroundColor: '#A6A6A6',
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                marginLeft: 6,
-                marginRight: 6,
-                marginTop: 6,
-                marginBottom: 0}} />}
-          activeDot={
-            <View style={{
-                backgroundColor: '#FFFFFF',
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                marginLeft: 6,
-                marginRight: 6,
-                marginTop: 6,
-                marginBottom: 0}} />}
-          >
-          { pictures.map((item, index) => (
-            <View style={styles.slide} key={index}>
-              <Image source={{uri: item.path}} style={styles.imageEvent} />
-            </View>
-          ))}
-        </Swiper>
-      </View>
-    }
-      <View style={styles.contentContainer}>
+      {
+        isOpen &&
+        <View style={styles.modalContainer}>
+          <TouchableOpacity style={[styles.optionContainer,{marginBottom: 10}]} onPress={() => handleModal({type: 'edit',item})}>
+            <Text style={styles.optionsText}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.optionContainer,{marginTop: 10}]} onPress={() => handleModal({type: 'delete',id})}>
+            <Text style={styles.optionsText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      }
+      <View style={styles.header}>
+      <View style={{flex: 5, padding:10,}}>
         <Text style={styles.titleText}>{title}</Text>
+      </View>
+      <TouchableOpacity style={{flex:1,height:60, justifyContent: 'center'}} onPress={() => handleModal({type:'show',index})}>
+        <Icon
+          name='dots-vertical'
+          type='material-community'
+          color={'#616161'}
+          />
+      </TouchableOpacity>
+      </View>
+      <View style={styles.line} />
+      <View style={styles.contentContainer}>
         <Text style={styles.descriptionText}>{content}</Text>
       </View>
       <View style={styles.line} />
@@ -85,7 +74,7 @@ const CardEvent = ({item}) => {
             <Text style={styles.dateText}>{dateText}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.commentsContainer} onPress={() => Actions.comment()} >
+        <TouchableOpacity style={styles.commentsContainer} onPress={() => Actions.comment({detailForum:item})} >
         <View style={styles.metaContainer}>
           <Icon
             name='comment'
@@ -107,7 +96,37 @@ const styles = StyleSheet.create({
     marginRight: 5,
     borderRadius:2,
     backgroundColor: '#FFFFFF',
-    elevation: 1
+    elevation: 2
+  },
+  modalContainer: {
+    flexDirection: 'column',
+    height: 'auto',
+    width: 100,
+    right: 10,
+    top: 10,
+    borderRadius: 2,
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+    elevation: 10,
+    zIndex: 9,
+    paddingLeft: 10,
+    paddingTop: 20,
+    paddingBottom: 20
+  },
+  optionContainer: {
+    flex: 1
+  },
+  optionsText: {
+    fontSize: 16,
+    color: '#212121',
+    fontFamily: 'Roboto'
+  },
+  header: {
+    height: 40,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF'
   },
   swiperContainer: {
     height: 150,
@@ -117,11 +136,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'stretch'
-  },
-  imageEvent: {
-    width: '100%',
-    height: 'auto',
-    alignItems: 'stretch',
   },
   contentContainer: {
     padding:10,

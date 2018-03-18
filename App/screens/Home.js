@@ -4,18 +4,23 @@ import {
   View,
   Text,
   Image,
-  RefreshControl
+  RefreshControl,
+  AsyncStorage,
+  BackHandler
 } from 'react-native'
 import {
   Button,
   Icon
 } from 'react-native-elements'
 import {OptimizedFlatList} from 'react-native-optimized-flatlist'
-///data dummy
-import {events} from '../lib/dummy.js'
 
 //components
-import {AddButton, CardEvent} from '../components'
+import {
+  AddButton,
+  CardEvent,
+  Empty,
+  Loading
+} from '../components'
 
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
@@ -27,48 +32,31 @@ class Home extends Component<{}> {
     this.state = {
       events: [],
       value: 0,
-      isFetching: false
+      isFetching: true
     }
   }
 
-  componentDidMount () {
-    this.fetchData()
-  }
-
   componentWillReceiveProps(nextProps) {
-    if(nextProps) this.fetchData()
+    if(nextProps.data.events) this.setState({events:nextProps.data.events, isFetching: false})
   }
 
-  fetchData = async () => {
-    // setTimeout(() => {
-    //   this.setState({events:this.props.data.events, isFetching: false})
-    //   // const dataUser = await AsyncStorage.getItem('dataUser')
-    //   // userId = JSON.parse(dataUser).id
-    //   userId = 'jdo7ks2s'
-    // },1000)
+  componentDidMount() {
+     BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
+     this.props.refetch(this.props.UserId)
+     console.log('masuk sini');
+   }
 
-    setTimeout(() => {
-      this.setState({events, isFetching: false})
-    },1000)
-  }
+   componentWillUnmount () {
+     BackHandler.removeEventListener('hardwareBackPress', this.backNavigation)
+   }
+
+   backNavigation = () => {
+     BackHandler.exitApp();
+     return true;
+   }
 
   _renderItem = ({item}) => {
     return <CardEvent item={item} />
-  }
-
-  _onRefresh = () => {
-    this.setState({isFetching:true},() => this.fetchData())
-  }
-
-  _refreshControl () {
-    return <RefreshControl
-        refreshing={this.state.isFetching}
-        onRefresh={this._onRefresh}
-        title="Pull to refresh"
-        tintColor="#fff"
-        titleColor="#fff"
-        colors={['#F50057','#00C853','#0091EA']}
-     />
   }
 
   handleScroll = (event) => {
@@ -76,28 +64,37 @@ class Home extends Component<{}> {
   }
 
   render () {
+
     const {events, isFetching} = this.state
-    console.log(this.props);
+    const isEmpty = events.length === 0
     return(
       <View style={styles.container}>
-        <OptimizedFlatList
-          data={events}
-          keyExtractor={(item, index) => index}
-          renderItem={this._renderItem}
-          refreshControl={this._refreshControl()}
-          onScroll={this.handleScroll}
-        />
-        <AddButton value={this.state.value} />
+        <Loading visible={isFetching}/>
+        {
+          !isFetching && !isEmpty ?
+          <View style={{ flex:1 }}>
+            <OptimizedFlatList
+              data={events}
+              keyExtractor={(item, index) => String(index)}
+              renderItem={this._renderItem}
+              onScroll={this.handleScroll}
+            />
+            <AddButton value={this.state.value} />
+          </View>
+          : !isFetching && isEmpty &&
+          <View style={{ flex:1 }}>
+            <Empty name={'clipboard-alert'} type={'material-community'} message={'Empty Data'} />
+            <AddButton value={this.state.value} />
+          </View>
+        }
       </View>
     )
   }
 }
 
-let userId = ''
-
-const Events = gql`
-  query Events ($userId:ID!) {
-    events (UserId: $userId) {
+const Events = gql `
+  query Events ($UserId:ID!) {
+    events (UserId: $UserId) {
       id
       title
       content
@@ -120,11 +117,35 @@ const Events = gql`
         firstName
       }
     }
+    incomeExpense {
+      id
+      isIncome
+      value
+      pictures {
+        id
+        path
+      }
+      user {
+        id
+        firstName
+        lastName
+      }
+      verified
+      verifiedBy {
+        id
+      }
+      createdAt
+    }
     management {
+      id
       members {
         id
         firstName
-        profilePicture
+        profilePicture,
+        role {
+          id
+          name
+        }
       }
     }
   }
@@ -132,7 +153,14 @@ const Events = gql`
 `;
 
 export default graphql(Events, {
-  options : { variables: { userId } }
+  options : (ownProps) => ({ variables: { UserId: ownProps.UserId || ''} }),
+  props: ({ data, ownProps }) => ({
+    refetch: (UserId) => {
+      data.refetch({ UserId })
+    },
+    data,
+    ...ownProps
+  })
 })(Home);
 
 // export default Home

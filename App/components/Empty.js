@@ -30,9 +30,5 @@ const styles = StyleSheet.create({
     backgroundColor:'#EEEEEE',
     justifyContent:'center',
     alignItems:'center'
-  },
-  image: {
-    width:100,
-    height:100
   }
 })

@@ -6,9 +6,9 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Dimensions,
-  BackHandler,
   ScrollView,
   Image,
+  AsyncStorage
 } from 'react-native'
 import DateTimePicker from 'react-native-modal-datetime-picker'
 import { Icon } from 'react-native-elements'
@@ -18,7 +18,7 @@ import { graphql } from 'react-apollo'
 import gql from 'graphql-tag'
 import moment from 'moment'
 
-import {teams, leaders} from '../lib/dummy.js'
+import { ModalDivision } from '../components'
 
 let {width,height} = Dimensions.get('window')
 
@@ -39,76 +39,105 @@ class Teams extends Component<{}> {
   constructor(){
     super()
     this.state = {
-      leaders:[],
-      isFetching: true
+      members: [],
+      divisions: [],
+      name: '',
+      isFetching: true,
+      isShow: false
     }
   }
 
- componentWillMount() {
-    BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
-  }
-
-  componentWillUnmount () {
-    BackHandler.removeEventListener('hardwareBackPress', this.backNavigation)
-    this.handleDetail()
-  }
-
   componentDidMount() {
-    this.setState({leaders,isFetching:false})
-  }
-
-  backNavigation = () => {
-    Actions.pop()
+    this.handleDetail()
   }
 
   handleDetail = async () => {
     const detailEvent = await AsyncStorage.getItem('detailEvent')
-    const { management } = JSON.parse(detailEvent)
+    const { members } = JSON.parse(detailEvent).management
+    const { divisions } = JSON.parse(detailEvent)
     this.setState({
-      leaders: management.members
+      members,
+      divisions,
+      isFetching: false
     })
   }
 
-  handleDivisionPressed = () => {
-    Actions.detail()
+  handleDivisionPressed = (divId,divName,members) => {
+    Actions.detail({ divId,divName,members })
   }
 
   renderEmptyBox () {
-    let i = 2 - (teams.length % 3)
+    const { divisions } = this.state
+    let i = 2 - (divisions.length % 3)
     let res = []
-    while(i !==0){
-      res= [ ...res, <View key={i} style={styles.teams} /> ]
+    while(i>0){
+      res= [ ...res, <View key={i} style={styles.divisions} /> ]
       i--
     }
     return res
   }
 
-  renderDivision () {
-    return teams.map((item,i) => {
+  renderDivision = () => {
+    const { divisions } = this.state
+    return divisions.map((item,i) => {
       return (
-        <TouchableOpacity key={i} style={[styles.teams,{backgroundColor: colors[i%9],elevation: 2}]} onPress={this.handleDivisionPressed} >
-          <Text style={styles.teamText}>{item.name}</Text>
+        <TouchableOpacity key={i}
+          style={[styles.divisions,{backgroundColor: colors[i%9],elevation: 2}]}
+          onPress={() => this.handleDivisionPressed(item.id,item.name,item.members)} >
+            <Text style={styles.teamText}>{ item.name }</Text>
         </TouchableOpacity>
       )
     })
   }
 
+  onChangeName = name => this.setState({ name })
+
+  showAddModal = () => this.setState({ isShow: true })
+
+  hideAddModal = () => this.setState({ isShow: false })
+
+  handleAdd = async () => {
+    const dataUser = await AsyncStorage.getItem('dataUser')
+    const detailEvent = await AsyncStorage.getItem('detailEvent')
+    const UserId = JSON.parse(dataUser).id
+    const EventId = JSON.parse(detailEvent).id
+    const { submit } = this.props
+
+    const {
+      name
+    } = this.state
+
+    const new_division = {
+      UserId,
+      EventId,
+      name
+    }
+    const res = await submit({ new_division })
+    Actions.event({ type: 'replace', UserId })
+    this.hideAddModal()
+  }
+
   render() {
-    const { leaders, isFetching} = this.state
-    console.log('lerader',leaders);
+    const {
+      members,
+      divisions,
+      isFetching,
+      isShow
+    } = this.state
+
     return (
       <View style={styles.container}>
+        <Loading visible={isFetching}/>
       {
-        isFetching ?  <ActivityIndicator size="large" color="#2979FF" />
-        :
+        !isFetching &&
         <ScrollView>
           <View style={styles.leaderContainer}>
           {
-              leaders.map((item,index) =>
+              members.reverse().map((item,index) =>
                 <View key={index} style={styles.leader}>
                   <Image style={styles.picture} source={{uri:item.profilePicture}}></Image>
                   <View style={styles.titleContainer}>
-                    <Text style={styles.titleText}>Leader</Text>
+                    <Text style={styles.titleText}>{item.role.name}</Text>
                     <Text>{item.firstName}</Text>
                   </View>
                 </View>
@@ -118,16 +147,20 @@ class Teams extends Component<{}> {
 
           <View style={styles.content}>
             <Text style={[styles.titleText,{alignSelf:'center'}]}>Divisions</Text>
-            <View style={styles.teamsContainer}>
+            <View style={styles.divisionsContainer}>
 
               { this.renderDivision() }
 
-              <TouchableOpacity key={teams.length} style={[styles.teams,{backgroundColor: '#BDBDBD', alignSelf:'flex-start'}]} >
-              <Icon
-                name='add'
-                type='material-icon'
-                size={34}
-                color='#FFFFFF' />
+              <TouchableOpacity
+                key={divisions.length}
+                style={[styles.divisions,{backgroundColor: '#BDBDBD', alignSelf:'flex-start'}]}
+                onPress={this.showAddModal}
+                >
+                <Icon
+                  name='account-multiple-plus'
+                  type='material-community'
+                  size={40}
+                  color='#FFFFFF' />
               </TouchableOpacity>
 
               { this.renderEmptyBox() }
@@ -136,6 +169,7 @@ class Teams extends Component<{}> {
 
         </ScrollView>
       }
+      <ModalDivision isShow={isShow} handleAdd={this.handleAdd} hideAddModal={this.hideAddModal} onChangeName={this.onChangeName} />
       </View>
     );
   }
@@ -167,7 +201,7 @@ const styles = StyleSheet.create({
     content : {
       paddingTop: 10,
     },
-    teamsContainer: {
+    divisionsContainer: {
       flex:1,
       margin: 10,
       flexDirection: 'row',
@@ -189,7 +223,7 @@ const styles = StyleSheet.create({
       fontWeight: 'bold',
       color: '#424242'
     },
-    teams: {
+    divisions: {
       justifyContent: 'center',
       alignItems: 'center',
       width: 100,
@@ -205,29 +239,23 @@ const styles = StyleSheet.create({
 
 })
 
-const editMutation = gql`
-  mutation editForum($new_forum: Event!) {
-    editForum(forum: $new_forum) {
-      ok
-      forum{
-        id
-        eventDate
-        title
-        content
-      }
-      errors {
-        message
-      }
+const addDivision = gql`
+mutation addDivision($new_division: DivisionObject!) {
+  addDivision(division: $new_division) {
+    ok
+    division {
+      id
+      name
     }
+    errors
   }
+}
 `;
 
-// export default graphql(AddMutation, {
-//   props: ({mutate}) => ({
-//     submit: (new_forum) => mutate({
-//       variables: { ...new_forum }
-//     })
-//   })
-// })(AddEvent)
-
-export default Teams
+export default graphql(addDivision, {
+  props: ({mutate}) => ({
+    submit: (new_division) => mutate({
+      variables: { ...new_division }
+    })
+  })
+})(Teams)

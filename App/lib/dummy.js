@@ -134,19 +134,19 @@ const forums = [
       { path: 'https://www.eventbriz.com/wp-content/uploads/2017/09/NOWLIVE.jpg'},
     ],
     content:`Blizzard Entertainment uses cookies and similar technologies on its websites. By continuing your browsing after being presented with the cookie information you consent to such use. `,
-    date: new Date("25/3/2018")
+    date: new Date()
   },
   {
     title: 'Music Concert',
     pictures:[],
     content:`Blizzard Entertainment uses cookies and similar technologies on its websites. By continuing your browsing after being presented with the cookie information you consent to such use. `,
-    date: new Date("19/3/2018")
+    date: new Date()
   },
   {
     title: 'TalkShow',
     pictures:[{path:'https://www.newstatesman.com/sites/all/themes/creative-responsive-theme/images/new_statesman_events.jpg'}],
     content:'Blizzard Entertainment uses cookies and similar technologies on its websites. By continuing your browsing after being presented with the cookie information you consent to such use. ',
-    date: new Date("21/3/2018")
+    date: new Date()
   },
 ]
 

@@ -12,7 +12,8 @@ import {
   Modal,
   ScrollView,
   Image,
-  Button
+  Button,
+  AsyncStorage
 } from 'react-native'
 import DateTimePicker from 'react-native-modal-datetime-picker'
 import { Dropdown } from 'react-native-material-dropdown';
@@ -23,6 +24,8 @@ import { graphql } from 'react-apollo'
 import gql from 'graphql-tag'
 import moment from 'moment'
 
+import { convert } from '../lib/helpers'
+
 const {width} = Dimensions.get('window')
 
 class EditActivity extends Component<{}> {
@@ -30,18 +33,35 @@ class EditActivity extends Component<{}> {
   constructor(){
     super()
     this.state = {
-      tempPictures: [],
-      title: '',
+      pictures: [],
+      path: [],
+      isIncome: false,
       description: '',
-      amount: '',
-      isDateTimePickerVisible: false,
-      date: new Date(),
+      value: 0,
+      isVerified: true,
+      incomeExpenseDate: new Date(),
       dateText: '',
-      showModal: false
-   }
+      isDateTimePickerVisible: false,
+      showModal: false,
+    }
   }
 
- componentWillMount() {
+  componentDidMount() {
+    const { item } = this.props
+    this.setState({
+      id: item.id,
+      pictures: item.pictures.map(item => (item.path)),
+      path: item.pictures.map(item => (item.path)),
+      isIncome: item.isIncome,
+      description: item.description,
+      value: item.value,
+      verified: item.verified,
+      date: new Date(item.createdAt),
+      dateText: moment(item.createdAt).format('LL'),
+    })
+  }
+
+  componentWillMount() {
     BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
   }
 
@@ -56,16 +76,17 @@ class EditActivity extends Component<{}> {
 
   handleModal = () => this.setState(prevState => ({ showModal: !prevState.showModal }))
 
-  onChangeTitle = title => this.setState({ title })
+  onChangeIsIncome= isIncome => this.setState({ isIncome })
 
   onChangeDescription = description => this.setState({ description })
 
-  onChangeAmount = amount => this.setState({ amount })
+  onChangeValue = value => this.setState({ value })
 
   deletePicture = (index) => {
     this.setState(prevState => {
       return {
-        tempPictures: prevState.tempPictures.filter((data,i) =>  index !== i)
+        pictures: prevState.pictures.filter((data,i) =>  index !== i),
+        path: prevState.path.filter((data,i) =>  index !== i)
       }
     })
   }
@@ -75,7 +96,12 @@ class EditActivity extends Component<{}> {
       const image = await Crop.default.openCamera({width: width, height: width+(width*0.35), cropping: true})
       const postData = new FormData()
       postData.append('file', { uri: image.path, type: 'image/jpg', name: 'qluster.jpg' })
-      this.setState(prevState => ({ tempPictures:[image.path,...prevState.tempPictures] }), this.handleModal())
+      const data = await upload(postData)
+
+      this.setState(prevState => ({
+        pictures:[image.path, ...prevState.pictures],
+        path:[data.result, ...prevState.path]
+      }), this.handleModal() )
     }
     catch(err) {
       this.handleModal()
@@ -87,35 +113,55 @@ class EditActivity extends Component<{}> {
       const image = await Crop.default.openPicker({width: width, height: width+(width*0.35), cropping: true})
       const postData = new FormData()
       postData.append('file', { uri: image.path, type: 'image/jpg', name: 'qluster.jpg' })
-      this.setState(prevState => ({ tempPictures:[image.path,...prevState.tempPictures] }), this.handleModal())
+      const data = await upload(postData)
+
+      this.setState(prevState => ({
+        pictures:[image.path, ...prevState.pictures],
+        path:[data.result, ...prevState.path]
+      }), this.handleModal() )
     }
     catch(err) {
       this.handleModal()
     }
   }
 
-  handleAdd = async () => {
-    // const { submit } = this.props
-    // const new_forum = {
-    //   title:"this",
-    //   content:"that",
-    //   UserId:"jcd7caw7",
-    //   picturePath:"https://image.freepik.com/free-photo/cute-cat-picture_1122-449.jpg",
-    //   eventDate:"12 august 2012"
-    // }
-    //
-    // const res = await submit({ new_forum })
-    //  console.log('add data',res.data);
+  handleEdit = async () => {
+    const { editData } = this.props
+
+    const {
+      id,
+      isIncome,
+      description,
+      incomeExpenseDate,
+      isVerified,
+      path,
+      value
+    } = this.state
+
+    const inc_exp = {
+      isIncome,
+      IncomeExpenseId: id,
+      description,
+      verified: isVerified,
+      incomeExpenseDate: moment(incomeExpenseDate).format('LL'),
+      path,
+      value: Number(String(value).replace(/[.]/g,''))
+    }
+    const res = await editData({inc_exp})
   }
 
-  _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true });
+  _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true })
 
-  _hideDateTimePicker = () => this.setState({ isDateTimePickerVisible: false });
+  _hideDateTimePicker = () => this.setState({ isDateTimePickerVisible: false })
 
-  _handleDatePicked = (date) => {
-    this.setState({ date,dateText: moment(date).format('LL') })
+  _handleDatePicked = (incomeExpenseDate) => {
+    this.setState({ incomeExpenseDate,dateText: moment(incomeExpenseDate).format('LL') })
     this._hideDateTimePicker();
-  };
+  }
+
+  handleIsIncome = (isIncome) => this.setState({ isIncome: isIncome === 'Income' })
+
+  handleVerified = (isVerified) => this.setState({ isVerified: isVerified === 'Verified' })
 
   render() {
     return (
@@ -125,15 +171,16 @@ class EditActivity extends Component<{}> {
           <ScrollView>
             <ScrollView horizontal={true} style={{marginLeft:10, marginRight:10}}>
               <View style={styles.viewRowScroll}>
-                {this.state.tempPictures.map((item, index) => (
+                {this.state.pictures.map((item, index) => (
                   <View key={index} style={{marginRight:8}}>
                     <Image source={{uri:item}} style={styles.imgRespon} />
                     <TouchableOpacity style={styles.viewBelumDitanggapi}
                       onPress={() => this.deletePicture(index)}>
                       <Icon
-                        name='close-circle-outline'
-                        type='material-community'
-                        color='#C62828'
+                        containerStyle={{backgroundColor: '#EEEEEE', height:20, width:20, borderRadius: 20/2}}
+                        name='x-circle'
+                        type='feather'
+                        color='#D32F2F'
                         size={20}
                       />
                     </TouchableOpacity>
@@ -167,11 +214,12 @@ class EditActivity extends Component<{}> {
                 label='Title'
                 textColor='#212121'
                 animationDuration={150}
-                value={'Expense'}
+                value={this.state.isIncome? 'Income' : 'Expense'}
                 lineWidth={0}
                 fontSize={14}
                 dropdownPosition={-2}
                 data={[{ value: 'Expense' },{ value: 'Income' }]}
+                onChangeText={ this.handleIsIncome }
               />
             </View>
 
@@ -186,6 +234,7 @@ class EditActivity extends Component<{}> {
               <TextInput
                 ref='description'
                 placeholder='Description'
+                value={this.state.description}
                 placeholderTextColor={'#A2A2A2'}
                 returnKeyType='next'
                 multiline
@@ -206,13 +255,14 @@ class EditActivity extends Component<{}> {
                 size={24}
               />
               <TextInput
-                ref='amount'
-                name='amount'
+                ref='value'
+                name='value'
                 placeholder='Amount'
+                value={convert(this.state.value)}
                 placeholderTextColor={'#A2A2A2'}
-                returnKeyType='next'
+                keyboardType='numeric'
                 underlineColorAndroid='transparent'
-                onChangeText={this.onChangeAmount}
+                onChangeText={this.onChangeValue}
                 style={styles.textInput} />
             </View>
 
@@ -232,33 +282,11 @@ class EditActivity extends Component<{}> {
                 textColor='#212121'
                 fontSize={14}
                 animationDuration={150}
-                value={'Verified'}
+                value={this.state.verified ? 'Verified' : 'Unverified'}
                 lineWidth={0}
                 dropdownPosition={-2}
                 data={[{ value: 'Verified' },{ value: 'Unverified' }]}
-              />
-            </View>
-
-            <View style={styles.line} />
-
-            <View style={styles.formDropDown}>
-              <Icon
-                name='group'
-                type='material-icons'
-                color='#4fc3f7'
-                size={24}
-              />
-              <Dropdown
-                containerStyle={styles.dropDownContainer}
-                pickerStyle={[styles.pickerStyle]}
-                label='Division'
-                fontSize={14}
-                textColor='#212121'
-                animationDuration={150}
-                value={'Finance'}
-                lineWidth={0}
-                dropdownPosition={3.5}
-                data={[{ value: 'Finance' },{ value: 'Creative' },{ value: 'Transportation' },{ value: 'Security' }]}
+                onChangeText={ this.handleVerified }
               />
             </View>
 
@@ -278,14 +306,14 @@ class EditActivity extends Component<{}> {
                 isVisible={this.state.isDateTimePickerVisible}
                 onConfirm={this._handleDatePicked}
                 onCancel={this._hideDateTimePicker}
-                date={this.state.date}
+                date={this.state.incomeExpenseDate}
               />
             </View>
 
             <View style={styles.line} />
           </ScrollView>
 
-          <TouchableOpacity style={styles.buttonAdd} onPress={this.handleAdd}>
+          <TouchableOpacity style={styles.buttonAdd} onPress={this.handleEdit}>
             <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>CHANGE</Text>
           </TouchableOpacity>
 
@@ -504,29 +532,26 @@ const styles = StyleSheet.create({
     },
 })
 
-const EditMutation = gql`
-  mutation editMutation($new_forum: Event!) {
-    editActi(forum: $new_forum) {
+const editActivity = gql`
+  mutation editIncExp($inc_exp:IncExpObject){
+    editIncExp(IncExp:$inc_exp){
       ok
-      forum{
+      incomeExpense {
         id
-        eventDate
-        title
-        content
+        verified
+        user {
+          id
+        }
       }
-      errors {
-        message
-      }
+      errors
     }
   }
 `;
 
-// export default graphql(AddMutation, {
-//   props: ({mutate}) => ({
-//     submit: (new_forum) => mutate({
-//       variables: { ...new_forum }
-//     })
-//   })
-// })(AddActivity)
-
-export default EditActivity
+export default graphql(editActivity, {
+  props: ({mutate}) => ({
+    editData: (inc_exp) => mutate({
+      variables: { ...inc_exp }
+    })
+  })
+})(EditActivity)

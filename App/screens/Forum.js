@@ -4,7 +4,9 @@ import {
   View,
   Text,
   Image,
-  BackHandler
+  BackHandler,
+  PanResponder,
+  AsyncStorage
 } from 'react-native'
 import {OptimizedFlatList} from 'react-native-optimized-flatlist'
 import {Actions} from 'react-native-router-flux'
@@ -12,22 +14,47 @@ import {Actions} from 'react-native-router-flux'
 import {forums} from '../lib/dummy.js'
 
 //components
-import {AddButton, CardForum} from '../components'
+import {
+  AddButton,
+  CardForum,
+  Empty,
+  Loading,
+  ModalForum
+} from '../components'
 
-import { graphql } from 'react-apollo';
+import { graphql, compose } from 'react-apollo';
 import gql from 'graphql-tag';
 
-class DetailDivision extends Component<{}> {
+class Forum extends Component<{}> {
 
   constructor (props) {
     super()
     this.state = {
       forums: [],
-      isFetching: false
+      isFetching: true,
+      sIndex: 0,
+      isOpen: false,
+      isShow: false,
+      title: '',
+      content: ''
     }
   }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return true
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if(nextProps.data.forums) this.setState({forums:nextProps.data.forums, isFetching: false})
+  }
+
   componentWillMount() {
-    BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
+    this._panResponder = PanResponder.create({
+      onStartShouldSetPanResponder: (evt, gestureState) => true,
+      onPanResponderGrant: (evt, gestureState) => {
+         this.hideModal()
+      },
+    })
   }
 
   componentWillUnmount () {
@@ -36,7 +63,8 @@ class DetailDivision extends Component<{}> {
 
 
   componentDidMount () {
-    this.fetchData()
+    this.props.refetch(this.props.EventId)
+    BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
   }
 
   backNavigation = () => {
@@ -44,33 +72,146 @@ class DetailDivision extends Component<{}> {
     return true
   }
 
-  fetchData () {
-    setTimeout(() => {
-      this.setState({forums, isFetching: false})
-    },1000)
+  handleEdit (item) {
+    this.hideModal()
   }
 
-  _renderItem = ({item}) => {
-    return <CardForum item={item} />
+  deleteActivity = (id) => {
+    this.hideModal()
+
   }
 
+  handleDelete (id) {
+    Alert.alert(
+      'Delete Activities',
+      'Are you sure?',
+      [
+        {text: 'Yes', onPress: () => this.deleteActivity(id)},
+        {text: 'No', onPress: this.hideModal, style: 'cancel'},
+      ],
+      { cancelable: false }
+    )
+  }
+
+  handleModal = ({type,item,id,index}) => {
+    this.setState({ isOpen: true, sIndex: index })
+    // // if(type === 'delete') this.handleDelete(id)
+    // // if(type === 'edit') this.handleEdit(item)
+  }
+
+  hideModal = () => {
+    this.setState({ isOpen: false })
+  }
+
+  _renderItem = ({item,index},parent) => {
+    return <CardForum item={item} index={index} parent={parent} />
+  }
+
+  openModal = () => {
+    this.setState({ isShow: true })
+  }
+
+  closeModal = () => {
+    this.setState({ isShow: false })
+  }
+
+  handleOnChange = (type,text) => {
+    this.setState({[type]: text})
+  }
 
   render () {
-    const {forums, isFetching} = this.state
+    const {forums, isFetching, isShow} = this.state
+    const parent = {
+      isOpen: this.state.isOpen,
+      handleModal : this.handleModal,
+      sIndex: this.state.sIndex,
+      _panResponder: this._panResponder
+    }
+
+    const isEmpty = forums.length === 0
+
     return(
-      <View style={styles.container}>
-        <OptimizedFlatList
-          data={forums}
-          keyExtractor={(item, index) => index}
-          renderItem={this._renderItem}
-        />
-        <AddButton value={this.state.value} />
+      <View style={styles.container} {...this._panResponder.panHandlers}>
+        <Loading visible={isFetching}/>
+        {
+          !isFetching && !isEmpty ?
+          <View style={{ flex:1 }}>
+            <OptimizedFlatList
+              data={forums}
+              keyExtractor={(item, index) => String(index)}
+              renderItem={(props) => this._renderItem(props,parent)}
+            />
+            <AddButton value={this.state.value} />
+          </View>
+          : !isFetching && isEmpty &&
+          <View style={{ flex:1 }}>
+            <Empty name={'alert-box'} type={'material-community'} message={'Empty Data'} />
+            <AddButton type={'forum'} hideModal={this.hideModal} openModal={this.openModal} />
+          </View>
+        }
+        <ModalForum isShow={isShow} handleAdd={this.handleAdd} handleOnChange={this.handleOnChange} />
       </View>
     )
   }
 }
 
-export default DetailDivision
+const Forums = gql`
+query Forums ($EventId: ID!) {
+  forums(EventId: $EventId) {
+    id
+    title
+    messages {
+      content
+      user {
+        id
+        firstName
+        lastName
+        profilePicture
+      }
+      ForumId
+      createdAt
+    }
+    content
+    createdAt
+  }
+}
+`;
+
+const deleteForum = gql`
+  mutation deleteForum($EventId: ID!) {
+
+    deleteForum(EventId: $EventId) {
+      ok
+      errors {
+        message
+      }
+    }
+  }
+`;
+
+
+export default compose(
+  graphql(Forums, {
+    options : (ownProps) => ({ variables: { EventId: 'jdyc6863'} }),
+    props: ({ data, ownProps }) => ({
+      refetch: (EventId) => {
+        data.refetch({ EventId })
+      },
+      data,
+      ...ownProps
+    })
+  }),
+  graphql(deleteForum, {
+    props: ({mutate}) => ({
+      deteleData: (EventId) => mutate({
+        variables: { EventId }
+      })
+    })
+  }),
+)(Forum)
+
+
+// export default Forum
 
 const styles = StyleSheet.create({
   container:{
