@@ -30,9 +30,9 @@ const CardActivity = ({item,index,parent}) => {
     user,
     description,
     verified,
-    createdAt
+    incomeExpenseDate
   } = item
-
+  console.log('item',item);
   const {
     isOpen,
     handleModal,
@@ -148,7 +148,7 @@ const CardActivity = ({item,index,parent}) => {
             type='material-community'
             color='#616161'
             />
-          <Text style={styles.dataText}>{moment(createdAt).format('LL')}</Text>
+          <Text style={styles.dataText}>{moment(incomeExpenseDate).format('LL')}</Text>
         </View>
       </View>
     </View>

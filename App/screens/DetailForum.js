@@ -87,6 +87,7 @@ class DetailForum extends Component<{}> {
               <Icon
                 name='calendar'
                 type='material-community'
+                size={20}
                 color='#9E9E9E'/>
               <Text style={styles.dateText}>{dateText}</Text>
             </View>
@@ -96,8 +97,9 @@ class DetailForum extends Component<{}> {
             <Icon
               name='comment'
               type='material-community'
-              color='#9E9E9E'/>
-              <Text style={styles.dateText}>{totalComments}</Text>
+              size={20}
+              color='#4fc3f7'/>
+              <Text style={styles.commentText}>{totalComments}</Text>
           </View>
           </View>
         </View>
@@ -169,17 +171,19 @@ const styles = StyleSheet.create({
     padding:10,
     flexDirection: 'column',
     alignItems: 'flex-start',
+    justifyContent: 'space-between',
     backgroundColor: '#FFFFFF'
   },
   titleText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#212121',
-    marginBottom: 5
+    alignSelf: 'center',
+    marginBottom: 20
   },
   descriptionText: {
     flexWrap: 'nowrap',
-    color: '#263238'
+    color: '#424242'
   },
   line: {
     width: '100%',
@@ -187,7 +191,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#DEDEDE'
   },
   cardButtonContainer: {
-    height: 60,
+    height: 40,
     flexDirection: 'row',
   },
   dateContainer: {
@@ -213,7 +217,8 @@ const styles = StyleSheet.create({
   },
   dateText: {
     marginLeft:5,
-    color: '#424242',
+    fontSize: 10,
+    color: '#616161',
   },
   commentBox: {
     height:50,
@@ -243,5 +248,10 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     justifyContent: 'center'
-  }
+  },
+  commentText: {
+    marginLeft:5,
+    fontSize: 14,
+    color: '#616161',
+  },
 })

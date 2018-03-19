@@ -1,28 +1,42 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
+import { graphql } from 'react-apollo'
+import gql from 'graphql-tag'
+import moment from 'moment'
+import {Actions} from 'react-native-router-flux'
+
 import {
   StyleSheet,
   View,
   Text,
   processColor,
   Dimensions,
+  AsyncStorage,
+  BackHandler,
+  ActivityIndicator
 } from 'react-native'
 import {
   Icon,
   Button,
 } from 'react-native-elements'
-import {LineChart} from 'react-native-charts-wrapper';
-import { Dropdown } from 'react-native-material-dropdown';
+import { LineChart } from 'react-native-charts-wrapper'
+import { Dropdown } from 'react-native-material-dropdown'
 
-const {width} = Dimensions.get('window')
+import { convert } from '../lib/helpers'
 
-export default class Summary extends Component<{}> {
+const { width } = Dimensions.get('window')
+
+class Summary extends Component<{}> {
 
   constructor(){
     super()
     this.state = {
+      year: '2018',
+      month: moment().month(),
+      total: '',
+      isFetching: true,
       data: {
         dataSets: [{
-          values: [{y: 10000000}, {y: 8000000}, {y: 7000000}, {y: 9000000}],
+          values: [{y: 0}, {y: 0}, {y: 0}, {y: 0}],
           label: '',
           config: {
             lineWidth: 2,
@@ -53,7 +67,7 @@ export default class Summary extends Component<{}> {
           drawLabels:true,
           drawAxisLine:false,
           axisMinimum: 0,
-          axisMaximum: 15000000,
+          axisMaximum: 0,
           valueFormatter:'largeValue',
           textColor:processColor('#616161')
         },
@@ -71,33 +85,33 @@ export default class Summary extends Component<{}> {
    }
    this.year = [{
      value: '2018',
-   },]
+   }]
 
    this.month = [{
      value: 'January',
-   }, {
+    }, {
      value: 'February',
-   },  {
-     value: 'Maret',
-   },  {
+    },  {
+     value: 'March',
+    },  {
      value: 'April',
-   },  {
+    },  {
      value: 'May',
-   },  {
+    },  {
      value: 'June',
-   },  {
+    },  {
      value: 'July',
-   },  {
+    },  {
      value: 'August',
-   },  {
+    },  {
      value: 'September',
-   },  {
+    },  {
      value: 'Oktober',
-   },  {
-     value: 'November',
-   }, {
-     value: 'Desember',
-   },]
+    },  {
+      value: 'November',
+    }, {
+     value: 'December',
+    },]
  }
 
 
@@ -105,8 +119,60 @@ export default class Summary extends Component<{}> {
     // alert('OK!')
   }
 
-  render() {
+  componentWillReceiveProps(nextProps) {
+    const { EventId, refetch, data } = nextProps
+    if(EventId) {
+      // refetch(EventId)
+    }
+    if(data.report) {
+      const total = data.report.total
+      const axisMaximum = total + (total/2)
 
+      this.setState(prevState => {
+        const values = prevState.data.dataSets[0].values.map( (item,index) => ({y: data.report[`week${index+1}`] }) )
+
+        return {
+          data: { dataSets: [{...prevState.data.dataSets[0],values}] },
+          yAxis: { left: { ...prevState.yAxis.left, axisMaximum }},
+          total,
+          isFetching: false,
+        }
+      })
+    }
+  }
+
+  componentWillMount() {
+     BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
+  }
+
+  componentWillUnmount () {
+    BackHandler.removeEventListener('hardwareBackPress', this.backNavigation)
+  }
+
+  backNavigation = async () => {
+    const dataUser = await AsyncStorage.getItem('dataUser')
+    const UserId = JSON.parse(dataUser).id
+    Actions.event({ type: 'replace', UserId })
+    return true
+  }
+
+  handleYear = (year) => {
+    this.setState({year})
+  }
+
+  handleMonth = (mo) => {
+    const months = ['January','February', 'March', 'April','May','June','July','August','September','Oktober','November','December']
+    month = months.findIndex((item => item == mo )) + 1
+    this.setState({month, isFetching: true}, () => {
+      const objectDate = month < 10 ? '2018-0'+ month : '2018-'+ month
+      this.props.refetch(this.props.EventId,objectDate)
+    })
+
+
+  }
+
+
+  render() {
     return (
       <View style={styles.container}>
         <View style={styles.containerSelect}>
@@ -116,25 +182,31 @@ export default class Summary extends Component<{}> {
             label='Year'
             value={'2018'}
             fontSize={18}
+            animationDuration={150}
             dropdownPosition={this.year.length > 3 ? -5 : -2}
             data={this.year}
+            onChangeText={ this.handleYear }
           />
           <Dropdown
             containerStyle={styles.selectedMonth}
             label='Month'
-            value={'February'}
+            value={moment().month(this.state.month).format('MMMM')}
             pickerStyle={styles.pickerStyle}
             fontSize={18}
+            animationDuration={150}
             dropdownPosition={-5}
             data={this.month}
+            onChangeText={ this.handleMonth }
           />
         </View>
         <View style={styles.containerChart}>
           <View style={styles.chartTitle}>
-            <Text style={styles.titleText}>6 Weeks</Text>
             <View>
               <Text style={styles.titleDigitsText}>Balance</Text>
-              <Text style={styles.digitsText}>Rp. 9.000.000</Text>
+              {
+                this.state.isFetching ? <ActivityIndicator size="small" color="#0091EA" /> :
+                <Text style={styles.digitsText}>{convert(this.state.total)}</Text>
+              }
             </View>
           </View>
           <LineChart
@@ -168,21 +240,40 @@ export default class Summary extends Component<{}> {
   }
 }
 
+const Summeries = gql`
+  query report($EventId: ID, $objectDate: IncExpObject){
+    report(EventId: $EventId, objectDate: $objectDate){
+      total
+      week1
+      week2
+      week3
+      week4
+    }
+  }
+`
+
+export default graphql(Summeries, {
+  options : (ownProps) => ({ variables: { EventId: ownProps.EventId, objectDate: ownProps.objectDate } }),
+  props: ({ data, ownProps }) => ({
+    refetch: (EventId, objectDate) => {
+      data.refetch({ EventId,objectDate })
+    },
+    data,
+    ...ownProps
+  })
+})(Summary);
+
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor:'#EEEEEE',
+    backgroundColor:'#F5F5F5',
   },
   containerSelect: {
     flex: 1,
     justifyContent: 'space-between',
     flexDirection:'row',
-    backgroundColor:'#FFFFFF',
-    padding:5,
-    // marginLeft: 5,
-    // marginRight: 5,
-    // marginTop: 5
+    backgroundColor: '#F5F5F5',
   },
   selectedYear: {
     flex: 1,
@@ -201,15 +292,12 @@ const styles = StyleSheet.create({
   containerChart: {
     flex: 5,
     backgroundColor: '#FFFFFF',
-    padding:5,
-    // marginLeft: 5,
-    // marginRight: 5,
-    // marginBottom: 5,
   },
   chartTitle: {
-    flexDirection:'row',
-    justifyContent:'space-between',
-    marginBottom:20
+    justifyContent:'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    height: 70,
   },
   titleText: {
     fontSize:15,
@@ -217,15 +305,16 @@ const styles = StyleSheet.create({
     color:'#757575',
   },
   titleDigitsText: {
-    fontSize:10,
+    fontSize:12,
     color:'#9E9E9E',
     fontWeight:'bold',
-    alignSelf:'flex-end',
+    alignSelf:'center',
   },
   digitsText: {
     fontSize:17,
     fontWeight:'bold',
-    color:'#263238'
+    color:'#263238',
+    alignSelf:'center',
   },
   chart: {
     flex: 1,

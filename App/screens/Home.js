@@ -56,7 +56,7 @@ class Home extends Component<{}> {
    }
 
   _renderItem = ({item}) => {
-    return <CardEvent item={item} />
+    return <CardEvent item={item} isHide={false} />
   }
 
   handleScroll = (event) => {
@@ -121,6 +121,7 @@ const Events = gql `
       id
       isIncome
       value
+      description
       pictures {
         id
         path
@@ -134,6 +135,7 @@ const Events = gql `
       verifiedBy {
         id
       }
+      incomeExpenseDate
       createdAt
     }
     management {
@@ -167,6 +169,6 @@ export default graphql(Events, {
 const styles = StyleSheet.create({
   container:{
     flex:1,
-    backgroundColor:'#EEEEEE'
+    backgroundColor:'#F5F5F5'
   }
 })

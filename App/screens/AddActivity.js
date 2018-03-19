@@ -40,7 +40,7 @@ class AddActivity extends Component<{}> {
       value: '',
       isVerified: true,
       incomeExpenseDate: new Date(),
-      dateText: '',
+      dateText: moment(new Date()).format('LL'),
       isDateTimePickerVisible: false,
       showModal: false,
    }
@@ -109,7 +109,19 @@ class AddActivity extends Component<{}> {
     }
   }
 
+  validation = () => {
+    const {
+      description,
+      value
+    } = this.state
+
+    if(description == '') alert('please input description')
+    else if(value == '') alert('please input amount')
+    else this.handleAdd()
+  }
+
   handleAdd = async () => {
+
     const { submit } = this.props
     const dataUser = await AsyncStorage.getItem('dataUser')
     const detailEvent = await AsyncStorage.getItem('detailEvent')
@@ -135,9 +147,12 @@ class AddActivity extends Component<{}> {
       path,
       value
     }
-    console.log(inc_exp);
     const res = await submit({ inc_exp })
-     console.log('add data',res.data);
+
+    let incomeExpense = [{...res.data.addIncExp.incomeExpense}, ...JSON.parse(detailEvent).incomeExpense]
+    AsyncStorage.setItem('incomeExpense',JSON.stringify(incomeExpense))
+    Actions.activities({type:'replace'})
+
   }
 
   _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true })
@@ -167,7 +182,7 @@ class AddActivity extends Component<{}> {
                     <TouchableOpacity style={styles.viewBelumDitanggapi}
                       onPress={() => this.deletePicture(index)}>
                       <Icon
-                        containerStyle={{backgroundColor: '#EEEEEE', height:20, width:20, borderRadius: 20/2}}
+                        containerStyle={{backgroundColor: '#F5F5F5', height:20, width:20, borderRadius: 20/2}}
                         name='x-circle'
                         type='feather'
                         color='#D32F2F'
@@ -249,6 +264,7 @@ class AddActivity extends Component<{}> {
                 placeholder='Amount'
                 placeholderTextColor={'#A2A2A2'}
                 returnKeyType='next'
+                keyboardType='numeric'
                 underlineColorAndroid='transparent'
                 onChangeText={this.onChangeValue}
                 style={styles.textInput} />
@@ -301,7 +317,7 @@ class AddActivity extends Component<{}> {
             <View style={styles.line} />
           </ScrollView>
 
-          <TouchableOpacity style={styles.buttonAdd} onPress={this.handleAdd}>
+          <TouchableOpacity style={styles.buttonAdd} onPress={this.validation}>
             <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>ADD</Text>
           </TouchableOpacity>
 
@@ -311,7 +327,7 @@ class AddActivity extends Component<{}> {
         <Modal visible={this.state.showModal}
           animationType={'fade'}
           transparent backgroundColor='transparent'
-          onRequestClose={() => console.log('close')}>
+          onRequestClose={() => {}}>
 
           <View style={styles.modalKeluhanContainer}>
             <View style={styles.modalKeluhanContentContainer}>
@@ -354,7 +370,7 @@ const styles = StyleSheet.create({
     ungguhGambar: {
       width: 130,
       height: 130,
-      backgroundColor: '#EEEEEE',
+      backgroundColor: '#F5F5F5',
       borderColor: '#DEDEDE',
       borderRadius: 2,
       borderWidth: 1,
@@ -456,7 +472,7 @@ const styles = StyleSheet.create({
       bottom: 0,
       height: 45,
       borderTopWidth: 2,
-      borderColor: '#EEEEEE',
+      borderColor: '#F5F5F5',
       paddingTop: 5
     },
     modalPilih: {
@@ -526,9 +542,19 @@ mutation addIncExp($inc_exp:IncExpObject){
     ok
     incomeExpense {
       id
+      isIncome
+      value
+      description
+      pictures {
+        id
+        path
+      }
+      incomeExpenseDate
       verified
       user {
         id
+        firstName
+        lastName
       }
     }
     errors

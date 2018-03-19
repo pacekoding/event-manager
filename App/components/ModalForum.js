@@ -17,10 +17,10 @@ class ModalForum extends Component<{}> {
 
   render() {
     const {
-      hideAddModal,
+      closeModal,
       handleAdd,
       isShow,
-      onChangeName
+      handleOnChange
     } = this.props
     return(
       <Modal
@@ -32,28 +32,43 @@ class ModalForum extends Component<{}> {
         <View style={styles.container}>
           <View style={styles.form}>
             <View style={styles.headerContainer}>
-              <Text style={styles.title}>New Division</Text>
+              <Text style={styles.title}>New Forum</Text>
               <Icon
                 name='close'
                 color='#2196F3'
                 size={20}
                 containerStyle={styles.close}
-                onPress={hideAddModal}
+                onPress={closeModal}
               />
             </View>
             <View style={styles.search}>
               <Icon
-                name='users'
-                type='font-awesome'
+                name='title'
+                type='material-icons'
                 color='#4fc3f7'
                 size={24}
               />
               <TextInput
-                name='search'
-                placeholder='Division...'
+                name='title'
+                placeholder='Title...'
                 placeholderTextColor={'#BDBDBD'}
                 underlineColorAndroid='transparent'
-                onChangeText={onChangeName}
+                onChangeText={(title) => handleOnChange('title',title)}
+                style={styles.textInputSearch} />
+            </View>
+            <View style={styles.search}>
+              <Icon
+                name='description'
+                type='material-icons'
+                color='#4fc3f7'
+                size={24}
+              />
+              <TextInput
+                name='title'
+                placeholder='Description...'
+                placeholderTextColor={'#BDBDBD'}
+                underlineColorAndroid='transparent'
+                onChangeText={(content) => handleOnChange('content',content)}
                 style={styles.textInputSearch} />
             </View>
             <TouchableOpacity style={styles.buttonAdd} onPress={handleAdd}>
@@ -71,7 +86,7 @@ const styles = StyleSheet.create({
   container:{
     flex:1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   headerContainer: {
     justifyContent: 'center',
@@ -91,7 +106,7 @@ const styles = StyleSheet.create({
     right: 5
   },
   form: {
-    width: '80%',
+    width: '90%',
     elevation:5,
     zIndex: 1,
     flexDirection: 'column',

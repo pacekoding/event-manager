@@ -21,7 +21,7 @@ const {width, height} = Dimensions.get('window')
 const imageWidth = width - width * 0.1
 const imageHeight = width - width * 0.1
 
-const CardEvent = ({item}) => {
+const CardEvent = ({item,isHide}) => {
     const { id, title, pictures, content, eventDate } = item
     const eventdateText = moment(eventDate).format('L')
     const dueDateColor = '#9E9E9E'
@@ -33,27 +33,31 @@ const CardEvent = ({item}) => {
 
     handleForum = () => {
       AsyncStorage.setItem('detailEvent',JSON.stringify(item))
-      Actions.forum({EventId: "jdyc6863"})
+      Actions.forum({EventId: item.id})
     }
 
     handleManagement = () => {
       AsyncStorage.setItem('detailEvent',JSON.stringify(item))
       AsyncStorage.setItem('incomeExpense',JSON.stringify(item.incomeExpense))
-      Actions.management()
+      console.log(item);
+      Actions.report({EventId: item.id})
+      return
     }
 
     return(
       <View style={styles.container}>
 
         <View style={styles.swiperContainer}>
-          <Icon
+          {
+            !isHide &&
+            <Icon
             containerStyle={styles.dateIcon}
             raised
             name='gear'
             type='font-awesome'
             color='#FFFFFF'
             size={20}
-            onPress={this.handleSetting} />
+            onPress={this.handleSetting} />}
             {
               pictures.length !== 0 &&
                 <Swiper
@@ -107,9 +111,12 @@ const CardEvent = ({item}) => {
           <TouchableOpacity style={styles.optionContainer} onPress={this.handleForum} >
             <Text style={[styles.optionText,{color: '#2962FF'}]}>Forum</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.optionContainer} onPress={this.handleManagement} >
-            <Text style={[styles.optionText,{color: '#00C853'}]}>Management</Text>
-          </TouchableOpacity>
+          {
+            !isHide &&
+            <TouchableOpacity style={styles.optionContainer} onPress={this.handleManagement} >
+              <Text style={[styles.optionText,{color: '#00C853'}]}>Management</Text>
+            </TouchableOpacity>
+          }
         </View>
       </View>
     )

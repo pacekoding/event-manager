@@ -106,17 +106,16 @@ const App  = () => {
               tabBarPosition={'top'}
               >
 
-              <Scene key='managementTab1' tabBarLabel='Activities'>
+              <Scene key='managementTab1' tabBarLabel='report'>
+                <Scene
+                  key='report'
+                  component={Summary}
+                />
+              </Scene>
+              <Scene key='managementTab2' tabBarLabel='activities'>
                 <Scene
                   key='activities'
                   component={Activities}
-                />
-              </Scene>
-
-              <Scene key='managementTab2' tabBarLabel='report'>
-                <Scene
-                  key='Test3'
-                  component={Summary}
                 />
               </Scene>
 

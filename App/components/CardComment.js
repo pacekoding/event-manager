@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 0.5,
     borderColor: '#E0E0E0',
-    marginRight:20,
+    marginRight:10,
     borderWidth:1
   },
   textContainer: {
@@ -67,7 +67,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   metaText: {
-    fontSize: 12
+    fontSize: 10,
+    color: '#616161'
   }
 })
 

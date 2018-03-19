@@ -7,7 +7,6 @@ import {
   Image,
   Dimensions,
   RefreshControl,
-  BackHandler,
   Alert,
   PanResponder,
   AsyncStorage
@@ -43,7 +42,6 @@ class Activities extends Component<{}> {
   }
 
   componentWillMount() {
-     BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
      this._panResponder = PanResponder.create({
        onStartShouldSetPanResponder: (evt, gestureState) => true,
        onPanResponderGrant: (evt, gestureState) => {
@@ -52,17 +50,9 @@ class Activities extends Component<{}> {
      })
    }
 
-   componentWillUnmount () {
-     BackHandler.removeEventListener('hardwareBackPress', this.backNavigation)
-   }
 
   componentDidMount () {
     this.handleDetail()
-  }
-
-  backNavigation = () => {
-    Actions.pop()
-    return true
   }
 
   hideModal = () => {
@@ -82,10 +72,13 @@ class Activities extends Component<{}> {
     Actions.editActivity({item})
   }
 
-  deleteActivity = (id) => {
+  deleteActivity = async (id) => {
     this.hideModal()
+    const detailEvent = await AsyncStorage.getItem('detailEvent')
     this.props.deteleData(id)
-
+    let incomeExpense = JSON.parse(detailEvent).incomeExpense.filter(item => item.id !== id)
+    AsyncStorage.setItem('incomeExpense',JSON.stringify(incomeExpense))
+    Actions.activities({type:'replace'})
   }
 
   handleDelete (id) {
@@ -148,6 +141,23 @@ const deleteIncExp = gql`
   mutation deleteIncExp($IncomeExpenseId: ID!) {
     deleteIncExp(IncomeExpenseId: $IncomeExpenseId) {
       ok
+      incomeExpense {
+        id
+        isIncome
+        value
+        description
+        pictures {
+          id
+          path
+        }
+        incomeExpenseDate
+        verified
+        user {
+          id
+          firstName
+          lastName
+        }
+      }
       errors
     }
   }

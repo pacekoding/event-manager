@@ -14,11 +14,14 @@ import DateTimePicker from 'react-native-modal-datetime-picker'
 import { Icon } from 'react-native-elements'
 import { Actions } from 'react-native-router-flux'
 import * as Crop from 'react-native-image-crop-picker'
-import { graphql } from 'react-apollo'
+import { graphql, compose } from 'react-apollo'
 import gql from 'graphql-tag'
 import moment from 'moment'
 
-import { ModalDivision } from '../components'
+import {
+  ModalDivision,
+  ModalMembers
+} from '../components'
 
 let {width,height} = Dimensions.get('window')
 
@@ -42,8 +45,17 @@ class Teams extends Component<{}> {
       members: [],
       divisions: [],
       name: '',
+      email: '',
+      user: {},
       isFetching: true,
-      isShow: false
+      isShow: false,
+      isShow2: false,
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if(nextProps.data.searchByEmail) {
+      if(nextProps.data.searchByEmail.user) this.setState({user:nextProps.data.searchByEmail.user})
     }
   }
 
@@ -112,9 +124,35 @@ class Teams extends Component<{}> {
       EventId,
       name
     }
+
     const res = await submit({ new_division })
     Actions.event({ type: 'replace', UserId })
     this.hideAddModal()
+  }
+
+  handleAdd2 = async () => {
+    const { submit2 } = this.props
+    const { user } = this.state
+    const dataUser = await AsyncStorage.getItem('dataUser')
+    const UserId = JSON.parse(dataUser).id
+    const newUser = {
+      DivisionId: 'jexlypvw',
+      UserId : user.id
+    }
+
+    await submit2({ user: newUser })
+    this.hideModal()
+    Actions.event({ type: 'replace', UserId })
+  }
+
+  openModal = () => this.setState({ isShow2: true })
+  hideModal = () => this.setState({ isShow2: false })
+  onChangeContent = (email) => this.setState({ email })
+
+  handleSeach = () => {
+    const { search } = this.props
+    const { email } = this.state
+    search(email)
   }
 
   render() {
@@ -122,7 +160,9 @@ class Teams extends Component<{}> {
       members,
       divisions,
       isFetching,
-      isShow
+      isShow,
+      isShow2,
+      user
     } = this.state
 
     return (
@@ -133,7 +173,7 @@ class Teams extends Component<{}> {
         <ScrollView>
           <View style={styles.leaderContainer}>
           {
-              members.reverse().map((item,index) =>
+              members.map((item,index) =>
                 <View key={index} style={styles.leader}>
                   <Image style={styles.picture} source={{uri:item.profilePicture}}></Image>
                   <View style={styles.titleContainer}>
@@ -142,7 +182,13 @@ class Teams extends Component<{}> {
                   </View>
                 </View>
                )
-            }
+          }
+          {
+            members.length == 1 &&
+            <TouchableOpacity style={styles.buttonAdd} onPress={this.openModal}>
+              <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>ADD</Text>
+            </TouchableOpacity>
+          }
           </View>
 
           <View style={styles.content}>
@@ -170,6 +216,14 @@ class Teams extends Component<{}> {
         </ScrollView>
       }
       <ModalDivision isShow={isShow} handleAdd={this.handleAdd} hideAddModal={this.hideAddModal} onChangeName={this.onChangeName} />
+      <ModalMembers
+        user={user}
+        isShow={isShow2}
+        hideModal={this.hideModal}
+        onChangeContent={this.onChangeContent}
+        handleSeach={this.handleSeach}
+        handleAdd={this.handleAdd2}
+        />
       </View>
     );
   }
@@ -235,9 +289,30 @@ const styles = StyleSheet.create({
       color: '#FFFFFF',
       fontSize: 10,
       fontWeight: 'bold'
+    },
+    buttonAdd: {
+      height:50,
+      alignItems:'center',
+      justifyContent:'center',
+      backgroundColor: '#2196F3',
     }
-
 })
+
+
+const searchByEmail = gql `
+  query searchByEmail($email: String!){
+    searchByEmail(email: $email) {
+    ok
+    user {
+      id
+      email
+      firstName
+      profilePicture
+    }
+      errors
+    }
+  }
+`;
 
 const addDivision = gql`
 mutation addDivision($new_division: DivisionObject!) {
@@ -252,10 +327,40 @@ mutation addDivision($new_division: DivisionObject!) {
 }
 `;
 
-export default graphql(addDivision, {
+const addMember = gql `
+  mutation addMember($user:UserObject){
+    addMember(user:$user){
+      ok
+      member {
+        id
+      }
+      errors
+    }
+  }
+`
+
+export default compose(
+graphql(searchByEmail, {
+  options : (ownProps) => ({ variables: { email: ''} }),
+  props: ({ data }) => ({
+    search: (email) => {
+      data.refetch({ email })
+    },
+    data,
+  })
+}),
+graphql(addMember, {
+  props: ({mutate}) => ({
+    submit2: (user) => mutate({
+      variables: { ...user }
+    })
+  })
+}),
+graphql(addDivision, {
   props: ({mutate}) => ({
     submit: (new_division) => mutate({
       variables: { ...new_division }
     })
   })
-})(Teams)
+}),
+)(Teams)

@@ -34,9 +34,17 @@ class DetailDivision extends Component<{}> {
       members: [],
       isShow: false,
       email: '',
+      user: {},
       isFetching: true
     }
   }
+
+  componentWillReceiveProps(nextProps) {
+    if(nextProps.data.searchByEmail) {
+      if(nextProps.data.searchByEmail.user) this.setState({user:nextProps.data.searchByEmail.user})
+    }
+  }
+
   componentWillMount() {
     BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
   }
@@ -68,19 +76,22 @@ class DetailDivision extends Component<{}> {
 
   onChangeContent = (email) => this.setState({ email })
 
-  handleSeach = (email) => {
+  handleSeach = () => {
     const { search } = this.props
-    search('james@qlue.id')
+    search(this.state.email)
   }
 
   handleAdd = async () => {
     const { submit, data, divId } = this.props
-    const user = {
+    const { user } = this.state
+    const dataUser = await AsyncStorage.getItem('dataUser')
+    const UserId = JSON.parse(dataUser).id
+    const newUser = {
       DivisionId: divId,
-      UserId : data.searchByEmail.user.id
+      UserId : user.id
     }
 
-    await submit({ user })
+    await submit({ user: newUser })
     Actions.event({ type: 'replace', UserId })
   }
 
@@ -90,14 +101,9 @@ class DetailDivision extends Component<{}> {
       divName,
       members,
       isShow,
-      isFetching
+      isFetching,
+      user
     } = this.state
-
-    let user = null
-
-    console.log(this.props);
-
-    if(this.props.data.searchByEmail) user = this.props.data.searchByEmail.user
 
     return(
       <View style={styles.container}>

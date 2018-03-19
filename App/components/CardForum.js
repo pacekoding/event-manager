@@ -48,16 +48,16 @@ const CardEvent = ({item,index,parent}) => {
         </View>
       }
       <View style={styles.header}>
-      <View style={{flex: 5, padding:10,}}>
+      <View style={{flex: 5, justifyContent: 'center', alignItems: 'center'}}>
         <Text style={styles.titleText}>{title}</Text>
       </View>
-      <TouchableOpacity style={{flex:1,height:60, justifyContent: 'center'}} onPress={() => handleModal({type:'show',index})}>
+      {/*<TouchableOpacity style={{flex:1,height:60, justifyContent: 'center'}} onPress={() => handleModal({type:'show',index})}>
         <Icon
           name='dots-vertical'
           type='material-community'
           color={'#616161'}
           />
-      </TouchableOpacity>
+      </TouchableOpacity>*/}
       </View>
       <View style={styles.line} />
       <View style={styles.contentContainer}>
@@ -70,6 +70,7 @@ const CardEvent = ({item,index,parent}) => {
             <Icon
               name='calendar'
               type='material-community'
+              size={20}
               color='#9E9E9E'/>
             <Text style={styles.dateText}>{dateText}</Text>
           </View>
@@ -79,8 +80,9 @@ const CardEvent = ({item,index,parent}) => {
           <Icon
             name='comment'
             type='material-community'
-            color='#9E9E9E'/>
-            <Text style={styles.dateText}>{totalComments}</Text>
+            size={20}
+            color='#4fc3f7'/>
+            <Text style={styles.commentText}>{totalComments}</Text>
         </View>
         </TouchableOpacity>
       </View>
@@ -122,7 +124,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Roboto'
   },
   header: {
-    height: 40,
+    height: 50,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -144,14 +146,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF'
   },
   titleText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#212121',
     marginBottom: 5
   },
   descriptionText: {
     flexWrap: 'nowrap',
-    color: '#263238'
+    color: '#424242'
   },
   line: {
     width: '100%',
@@ -159,7 +161,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#DEDEDE'
   },
   cardButtonContainer: {
-    height: 60,
+    height: 40,
     flexDirection: 'row',
   },
   dateContainer: {
@@ -185,7 +187,13 @@ const styles = StyleSheet.create({
   },
   dateText: {
     marginLeft:5,
-    color: '#424242',
+    fontSize: 10,
+    color: '#616161',
+  },
+  commentText: {
+    marginLeft:5,
+    fontSize: 14,
+    color: '#616161',
   },
 })
 

@@ -37,7 +37,7 @@ class EditActivity extends Component<{}> {
       path: [],
       isIncome: false,
       description: '',
-      value: 0,
+      value: '',
       isVerified: true,
       incomeExpenseDate: new Date(),
       dateText: '',
@@ -54,7 +54,7 @@ class EditActivity extends Component<{}> {
       path: item.pictures.map(item => (item.path)),
       isIncome: item.isIncome,
       description: item.description,
-      value: item.value,
+      value: Number(item.value),
       verified: item.verified,
       date: new Date(item.createdAt),
       dateText: moment(item.createdAt).format('LL'),
@@ -125,9 +125,20 @@ class EditActivity extends Component<{}> {
     }
   }
 
+  validation = () => {
+    const {
+      description,
+      value
+    } = this.state
+
+    if(description == '') alert('please input description')
+    else if(value == '') alert('please input amount')
+    else this.handleEdit()
+  }
+
   handleEdit = async () => {
     const { editData } = this.props
-
+    const detailEvent = await AsyncStorage.getItem('detailEvent')
     const {
       id,
       isIncome,
@@ -148,6 +159,15 @@ class EditActivity extends Component<{}> {
       value: Number(String(value).replace(/[.]/g,''))
     }
     const res = await editData({inc_exp})
+
+    let incomeExpense = JSON.parse(detailEvent).incomeExpense.map(item => {
+      if (item.id === res.data.editIncExp.incomeExpense.id)
+        return res.data.editIncExp.incomeExpense
+      else return item
+    })
+
+    AsyncStorage.setItem('incomeExpense',JSON.stringify(incomeExpense))
+    Actions.activities({type:'replace'})
   }
 
   _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true })
@@ -177,7 +197,7 @@ class EditActivity extends Component<{}> {
                     <TouchableOpacity style={styles.viewBelumDitanggapi}
                       onPress={() => this.deletePicture(index)}>
                       <Icon
-                        containerStyle={{backgroundColor: '#EEEEEE', height:20, width:20, borderRadius: 20/2}}
+                        containerStyle={{backgroundColor: '#F5F5F5', height:20, width:20, borderRadius: 20/2}}
                         name='x-circle'
                         type='feather'
                         color='#D32F2F'
@@ -258,7 +278,7 @@ class EditActivity extends Component<{}> {
                 ref='value'
                 name='value'
                 placeholder='Amount'
-                value={convert(this.state.value)}
+                value={String(this.state.value)}
                 placeholderTextColor={'#A2A2A2'}
                 keyboardType='numeric'
                 underlineColorAndroid='transparent'
@@ -313,7 +333,7 @@ class EditActivity extends Component<{}> {
             <View style={styles.line} />
           </ScrollView>
 
-          <TouchableOpacity style={styles.buttonAdd} onPress={this.handleEdit}>
+          <TouchableOpacity style={styles.buttonAdd} onPress={this.validation}>
             <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>CHANGE</Text>
           </TouchableOpacity>
 
@@ -366,7 +386,7 @@ const styles = StyleSheet.create({
     ungguhGambar: {
       width: 130,
       height: 130,
-      backgroundColor: '#EEEEEE',
+      backgroundColor: '#F5F5F5',
       borderColor: '#DEDEDE',
       borderRadius: 2,
       borderWidth: 1,
@@ -468,7 +488,7 @@ const styles = StyleSheet.create({
       bottom: 0,
       height: 45,
       borderTopWidth: 2,
-      borderColor: '#EEEEEE',
+      borderColor: '#F5F5F5',
       paddingTop: 5
     },
     modalPilih: {
@@ -538,9 +558,19 @@ const editActivity = gql`
       ok
       incomeExpense {
         id
+        isIncome
+        value
+        description
+        pictures {
+          id
+          path
+        }
+        incomeExpenseDate
         verified
         user {
           id
+          firstName
+          lastName
         }
       }
       errors

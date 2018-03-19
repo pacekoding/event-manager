@@ -3,6 +3,7 @@ import {
   StyleSheet,
   View,
   Text,
+  Image,
   Modal,
   TouchableOpacity,
   TextInput,
@@ -56,14 +57,24 @@ class ModalMembers extends Component<{}> {
                 placeholder='Email...'
                 placeholderTextColor={'#BDBDBD'}
                 underlineColorAndroid='transparent'
-                onChangeText={this.onChangeContent}
+                onChangeText={onChangeContent}
                 style={styles.textInputSearch} />
             </View>
             <View>
-              <Text>{user && user.email}</Text>
-              <TouchableOpacity style={styles.buttonAdd} onPress={handleAdd}>
-                <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>ADD</Text>
-              </TouchableOpacity>
+              {
+                user && user.email &&
+                <View>
+                  <View style={styles.leader}>
+                    <Image style={styles.picture} source={{uri:user.profilePicture}}></Image>
+                    <View style={styles.titleContainer}>
+                      <Text sytle={{alignSelf:'center'}}>{user.email}</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity style={styles.buttonAdd} onPress={handleAdd}>
+                    <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>ADD</Text>
+                  </TouchableOpacity>
+                </View>
+              }
             </View>
             <View style={{ flex:1, backgroundColor:'#FFFFFF',justifyContent:'center',alignItems:'center', flexDirection: 'column' }}>
               <Icon
@@ -73,9 +84,13 @@ class ModalMembers extends Component<{}> {
                 size={70}
               />
             </View>
-            <TouchableOpacity style={styles.buttonAdd} onPress={handleSeach}>
-              <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>SEARCH</Text>
-            </TouchableOpacity>
+            {
+              !user.email &&
+              <TouchableOpacity style={styles.buttonAdd} onPress={handleSeach}>
+                <Text style={{fontSize:15,fontWeight:'bold',color:'#FFFFFF'}}>SEARCH</Text>
+              </TouchableOpacity>
+            }
+
           </View>
         </View>
 
@@ -144,7 +159,28 @@ const styles = StyleSheet.create({
     alignItems:'center',
     justifyContent:'center',
     backgroundColor: '#2196F3',
-  }
+  },
+  leader: {
+    height: 60,
+    paddingLeft:5,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  picture : {
+    width:40,
+    height:40,
+    borderRadius: 35,
+    borderWidth: 0.5,
+    borderColor: '#E0E0E0',
+    marginRight:10,
+    borderWidth:1,
+    justifyContent: 'center',
+  },
+  titleContainer: {
+    flex: 1,
+    justifyContent: 'center'
+  },
 })
 
 export default ModalMembers

@@ -149,7 +149,7 @@ class AddEvent extends Component<{}> {
                     <TouchableOpacity style={styles.viewBelumDitanggapi}
                       onPress={() => this.deletePicture(index)}>
                       <Icon
-                        containerStyle={{backgroundColor: '#EEEEEE', height:20, width:20, borderRadius: 20/2}}
+                        containerStyle={{backgroundColor: '#F5F5F5', height:20, width:20, borderRadius: 20/2}}
                         name='x-circle'
                         type='feather'
                         color='#D32F2F'
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     ungguhGambar: {
       width: 130,
       height: 130,
-      backgroundColor: '#EEEEEE',
+      backgroundColor: '#F5F5F5',
       borderColor: '#DEDEDE',
       borderRadius: 2,
       borderWidth: 1,
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
       bottom: 0,
       height: 45,
       borderTopWidth: 2,
-      borderColor: '#EEEEEE',
+      borderColor: '#F5F5F5',
       paddingTop: 5
     },
     modalPilih: {

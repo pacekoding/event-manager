@@ -29,7 +29,7 @@ export default class Test extends Component<{}> {
 const styles = StyleSheet.create({
   container:{
     flex:1,
-    backgroundColor:'#EEEEEE',
+    backgroundColor:'#F5F5F5',
     justifyContent:'center',
     alignItems:'center'
   },

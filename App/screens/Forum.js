@@ -10,8 +10,6 @@ import {
 } from 'react-native'
 import {OptimizedFlatList} from 'react-native-optimized-flatlist'
 import {Actions} from 'react-native-router-flux'
-///data dummy
-import {forums} from '../lib/dummy.js'
 
 //components
 import {
@@ -119,6 +117,25 @@ class Forum extends Component<{}> {
     this.setState({[type]: text})
   }
 
+  handleAdd = () => {
+    const { submit,refetch, EventId } = this.props
+
+    const {
+      title,
+      content
+    } = this.state
+
+    const forum = {
+      title,
+      content,
+      EventId,
+    }
+
+    submit({ forum })
+    refetch(EventId)
+    this.closeModal()
+  }
+
   render () {
     const {forums, isFetching, isShow} = this.state
     const parent = {
@@ -131,7 +148,7 @@ class Forum extends Component<{}> {
     const isEmpty = forums.length === 0
 
     return(
-      <View style={styles.container} {...this._panResponder.panHandlers}>
+      <View style={[styles.container,{opacity: isShow ? 0.5 : 1}]} {...this._panResponder.panHandlers}>
         <Loading visible={isFetching}/>
         {
           !isFetching && !isEmpty ?
@@ -141,7 +158,7 @@ class Forum extends Component<{}> {
               keyExtractor={(item, index) => String(index)}
               renderItem={(props) => this._renderItem(props,parent)}
             />
-            <AddButton value={this.state.value} />
+            <AddButton type={'forum'} hideModal={this.hideModal} openModal={this.openModal} />
           </View>
           : !isFetching && isEmpty &&
           <View style={{ flex:1 }}>
@@ -149,7 +166,7 @@ class Forum extends Component<{}> {
             <AddButton type={'forum'} hideModal={this.hideModal} openModal={this.openModal} />
           </View>
         }
-        <ModalForum isShow={isShow} handleAdd={this.handleAdd} handleOnChange={this.handleOnChange} />
+        <ModalForum isShow={isShow} handleAdd={this.handleAdd} closeModal={this.closeModal} handleOnChange={this.handleOnChange} />
       </View>
     )
   }
@@ -182,23 +199,40 @@ const deleteForum = gql`
 
     deleteForum(EventId: $EventId) {
       ok
-      errors {
-        message
-      }
+      errors
     }
   }
+`;
+
+const addForum = gql `
+mutation addForum($forum:ForumObject){
+  addForum(forum:$forum){
+    ok
+    forum {
+      id
+    }
+    errors
+  }
+}
 `;
 
 
 export default compose(
   graphql(Forums, {
-    options : (ownProps) => ({ variables: { EventId: 'jdyc6863'} }),
+    options : (ownProps) => ({ variables: { EventId: ownProps.EventId } }),
     props: ({ data, ownProps }) => ({
       refetch: (EventId) => {
         data.refetch({ EventId })
       },
       data,
       ...ownProps
+    })
+  }),
+  graphql(addForum, {
+    props: ({mutate}) => ({
+      submit: (forum) => mutate({
+        variables: { ...forum }
+      })
     })
   }),
   graphql(deleteForum, {
