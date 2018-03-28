@@ -73,7 +73,7 @@ export default class Profile extends Component<{}> {
     return(
       <View style={styles.container}>
         <View style={styles.profile}>
-          <Image style={styles.picture} source={{ uri: profilePicture }} />
+          <Image style={styles.picture} source={{ uri: profilePicture || 'https://vignette.wikia.nocookie.net/creepypasta/images/8/80/White.png/revision/latest?cb=20140308203440' }} />
         </View>
         <View style={styles.card}>
           <Icon

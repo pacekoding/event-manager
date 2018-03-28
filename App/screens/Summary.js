@@ -162,12 +162,11 @@ class Summary extends Component<{}> {
 
   handleMonth = (mo) => {
     const months = ['January','February', 'March', 'April','May','June','July','August','September','Oktober','November','December']
-    month = months.findIndex((item => item == mo )) + 1
+    month = months.findIndex((item => item == mo ))
     this.setState({month, isFetching: true}, () => {
-      const objectDate = month < 10 ? '2018-0'+ month : '2018-'+ month
+      const objectDate = (month+1) < 10 ? '2018-0'+ (month+1) : '2018-'+ (month+1)
       this.props.refetch(this.props.EventId,objectDate)
     })
-
 
   }
 

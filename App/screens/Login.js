@@ -51,7 +51,7 @@ class Login extends Component<{}> {
     try {
       const res = await submit(email, password)
        if (res.data.login.ok) {
-         alert('Login Success!')
+         // alert('Login Success!')
          const dataUser = res.data.login.user
          AsyncStorage.setItem('dataUser', JSON.stringify(dataUser))
          Actions.event({ type: 'replace', UserId: dataUser.id })
