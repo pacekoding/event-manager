@@ -17,8 +17,8 @@ export default class Splash extends Component<{}> {
 
     if(dataUser) {
       const UserId = JSON.parse(dataUser).id
+      console.log('qwerasdf',UserId);
       Actions.event({ type: 'replace', UserId })
-
     } else setTimeout(() => {
       Actions.login()
     },1000)

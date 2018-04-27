@@ -43,7 +43,6 @@ class Home extends Component<{}> {
   componentDidMount() {
      BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
      this.props.refetch(this.props.UserId)
-     console.log('masuk sini');
    }
 
    componentWillUnmount () {
@@ -56,7 +55,7 @@ class Home extends Component<{}> {
    }
 
   _renderItem = ({item}) => {
-    return <CardEvent item={item} isHide={false} />
+    return <CardEvent item={item} nav={'home'}/>
   }
 
   handleScroll = (event) => {
@@ -143,6 +142,7 @@ const Events = gql `
       members {
         id
         firstName
+        email
         profilePicture,
         role {
           id

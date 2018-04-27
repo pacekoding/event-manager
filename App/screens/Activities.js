@@ -37,7 +37,8 @@ class Activities extends Component<{}> {
       activities: [],
       isFetching: true,
       sIndex: 0,
-      isOpen: false
+      isOpen: false,
+      editable: false
     }
   }
 
@@ -50,7 +51,6 @@ class Activities extends Component<{}> {
      })
    }
 
-
   componentDidMount () {
     this.handleDetail()
   }
@@ -61,9 +61,15 @@ class Activities extends Component<{}> {
 
   handleDetail = async () => {
     const incomeExpense = await AsyncStorage.getItem('incomeExpense')
+    const management = await AsyncStorage.getItem('management')
+    const dataUser = await AsyncStorage.getItem('dataUser')
+
+    const bendahara = JSON.parse(management).members.filter(member => (member.role.id == 2))[0]
+    const editable = JSON.parse(dataUser).email === bendahara.email
     this.setState({
       activities: JSON.parse(incomeExpense),
-      isFetching: false
+      editable,
+      isFetching: false,
     })
   }
 
@@ -108,7 +114,8 @@ class Activities extends Component<{}> {
       isOpen: this.state.isOpen,
       handleModal : this.handleModal,
       sIndex: this.state.sIndex,
-      _panResponder: this._panResponder
+      _panResponder: this._panResponder,
+      editable: this.state.editable
     }
     const { activities, isFetching } = this.state
     const isEmpty = activities.length === 0

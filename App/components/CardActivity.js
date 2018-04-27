@@ -37,7 +37,8 @@ const CardActivity = ({item,index,parent}) => {
     isOpen,
     handleModal,
     sIndex,
-    _panResponder
+    _panResponder,
+    editable
   } = parent
 
   const title = isIncome ? 'INCOME' : 'EXPENSE'
@@ -67,13 +68,19 @@ const CardActivity = ({item,index,parent}) => {
         <View style={{flex: 5, alignItems: 'center'}}>
           <Text style={[styles.headerText,{color:titleColor}]}>{title}</Text>
         </View>
-        <TouchableOpacity style={{flex:1,height:60, justifyContent: 'center',}} onPress={() => handleModal({ type: 'show', index })}>
-          <Icon
-            name='dots-vertical'
-            type='material-community'
-            color={'#616161'}
-            />
-        </TouchableOpacity>
+        {
+          editable ?
+          <TouchableOpacity style={{flex:1,height:60, justifyContent: 'center',}} onPress={() => handleModal({ type: 'show', index })}>
+            <Icon
+              name='dots-vertical'
+              type='material-community'
+              color={'#616161'}
+              />
+          </TouchableOpacity>
+          :
+          <View style={{flex:1,height:60, justifyContent: 'center',}} />
+        }
+
       </View>
       {
         pictures.length !== 0 &&

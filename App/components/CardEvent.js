@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {Component} from 'react'
 import {
   View,
   Text,
@@ -21,105 +21,162 @@ const {width, height} = Dimensions.get('window')
 const imageWidth = width - width * 0.1
 const imageHeight = width - width * 0.1
 
-const CardEvent = ({item,isHide}) => {
-    const { id, title, pictures, content, eventDate } = item
-    const eventdateText = moment(eventDate).format('L')
-    const dueDateColor = '#9E9E9E'
+class CardEvent extends Component<> {
+
+    constructor () {
+      super()
+      this.state = {
+        eventdateText: moment(new Date()).format('L'),
+        dueDateColor: '#9E9E9E',
+        isHide: true,
+        id: '',
+        title: '',
+        pictures: '',
+        content: '',
+        eventDate: ''
+      }
+    }
+
+    async componentDidMount(){
+
+      const { id, title, pictures, content, eventDate,management } = this.props.item
+      const eventdateText = moment(eventDate).format('L')
+      const dueDateColor = '#9E9E9E'
+
+      let dataUser = await AsyncStorage.getItem('dataUser')
+      const bendahara = management.members.filter(member => (member.role.id == 2))
+      let isHide = ''
+      if (this.props.nav)
+        isHide = false
+      else
+        isHide = !(JSON.parse(dataUser).email === bendahara[0].email)
+
+      this.setState({
+        isHide,
+        eventdateText,
+        dueDateColor,
+        id,
+        title,
+        pictures,
+        content,
+        eventDate
+      })
+
+    }
 
     handleSetting = () => {
+      const { item } = this.props
       AsyncStorage.setItem('detailEvent',JSON.stringify(item))
       Actions.editEvent({detailEvent:item})
     }
 
     handleForum = () => {
+      const { item } = this.props
       AsyncStorage.setItem('detailEvent',JSON.stringify(item))
       Actions.forum({EventId: item.id})
     }
 
     handleManagement = () => {
+      const { item } = this.props
       AsyncStorage.setItem('detailEvent',JSON.stringify(item))
       AsyncStorage.setItem('incomeExpense',JSON.stringify(item.incomeExpense))
-      console.log(item);
+      AsyncStorage.setItem('management',JSON.stringify(item.management))
       Actions.report({EventId: item.id})
       return
     }
 
-    return(
-      <View style={styles.container}>
+    render() {
 
-        <View style={styles.swiperContainer}>
-          {
-            !isHide &&
-            <Icon
-            containerStyle={styles.dateIcon}
-            raised
-            name='gear'
-            type='font-awesome'
-            color='#FFFFFF'
-            size={20}
-            onPress={this.handleSetting} />}
+      const {
+        id,
+        title,
+        pictures,
+        content,
+        eventDate,
+        eventdateText,
+        dueDateColor,
+        isHide
+      } = this.state
+
+      return(
+        <View style={styles.container}>
+
+          <View style={styles.swiperContainer}>
             {
-              pictures.length !== 0 &&
-                <Swiper
-                  loop={false}
-                  dot={
-                    <View style={{
-                        backgroundColor: '#A6A6A6',
-                        width: 8,
-                        height: 8,
-                        borderRadius: 4,
-                        marginLeft: 6,
-                        marginRight: 6,
-                        marginTop: 6,
-                        marginBottom: 0}} />}
-                  activeDot={
-                    <View style={{
-                        backgroundColor: '#FFFFFF',
-                        width: 8,
-                        height: 8,
-                        borderRadius: 4,
-                        marginLeft: 6,
-                        marginRight: 6,
-                        marginTop: 6,
-                        marginBottom: 0}} />}
-                  >
-                  { pictures.map((item, index) => (
-                    <View style={styles.slide} key={index}>
-                      <Image source={{uri: item.path}} style={styles.imageEvent} />
-                    </View>
-                  ))}
-                </Swiper>
-            }
-            {
-              eventdateText &&
-              <View style={[styles.dueDateIcon,{backgroundColor: dueDateColor}]}>
-                <Icon
-                  name='clock-alert'
-                  type='material-community'
-                  color='#FFFFFF'
-                  size={18}/>
-                <Text style={styles.eventdateText}>{eventdateText}</Text>
-              </View>
-            }
-        </View>
-        <View style={styles.contentContainer}>
-          <Text style={styles.titleText}>{title}</Text>
-          <Text style={styles.descriptionText}>{content}</Text>
-        </View>
-        <View style={styles.line} />
-        <View style={styles.cardButtonContainer}>
-          <TouchableOpacity style={styles.optionContainer} onPress={this.handleForum} >
-            <Text style={[styles.optionText,{color: '#2962FF'}]}>Forum</Text>
-          </TouchableOpacity>
-          {
-            !isHide &&
-            <TouchableOpacity style={styles.optionContainer} onPress={this.handleManagement} >
-              <Text style={[styles.optionText,{color: '#00C853'}]}>Management</Text>
+              !isHide &&
+              <Icon
+              containerStyle={styles.dateIcon}
+              raised
+              name='gear'
+              type='font-awesome'
+              color='#FFFFFF'
+              size={20}
+              onPress={this.handleSetting} />}
+              {
+                pictures.length !== 0 &&
+                  <Swiper
+                    loop={false}
+                    dot={
+                      <View style={{
+                          backgroundColor: '#A6A6A6',
+                          width: 8,
+                          height: 8,
+                          borderRadius: 4,
+                          marginLeft: 6,
+                          marginRight: 6,
+                          marginTop: 6,
+                          marginBottom: 0}} />}
+                    activeDot={
+                      <View style={{
+                          backgroundColor: '#FFFFFF',
+                          width: 8,
+                          height: 8,
+                          borderRadius: 4,
+                          marginLeft: 6,
+                          marginRight: 6,
+                          marginTop: 6,
+                          marginBottom: 0}} />}
+                    >
+                    { pictures.map((item, index) => (
+                      <View style={styles.slide} key={index}>
+                        <Image source={{uri: item.path}} style={styles.imageEvent} />
+                      </View>
+                    ))}
+                  </Swiper>
+              }
+              {
+                eventdateText &&
+                <View style={[styles.dueDateIcon,{backgroundColor: dueDateColor}]}>
+                  <Icon
+                    name='clock-alert'
+                    type='material-community'
+                    color='#FFFFFF'
+                    size={18}/>
+                  <Text style={styles.eventdateText}>{eventdateText}</Text>
+                </View>
+              }
+          </View>
+          <View style={styles.contentContainer}>
+            <Text style={styles.titleText}>{title}</Text>
+            <Text style={styles.descriptionText}>{content}</Text>
+          </View>
+          <View style={styles.line} />
+          <View style={styles.cardButtonContainer}>
+            <TouchableOpacity style={styles.optionContainer} onPress={this.handleForum} >
+              <Text style={[styles.optionText,{color: '#2962FF'}]}>Forum</Text>
             </TouchableOpacity>
-          }
+            {
+              !isHide &&
+              <TouchableOpacity style={styles.optionContainer} onPress={this.handleManagement} >
+                <Text style={[styles.optionText,{color: '#00C853'}]}>Management</Text>
+              </TouchableOpacity>
+            }
+          </View>
         </View>
-      </View>
-    )
+      )
+    }
+
+
 }
 
 const styles = StyleSheet.create({

@@ -36,13 +36,15 @@ class Invited extends Component<{}> {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
+  async componentWillReceiveProps(nextProps) {
     if(nextProps.data.invitations) this.setState({invitations:nextProps.data.invitations, isFetching: false})
+
+    const dataUser = await AsyncStorage.getItem('dataUser')
+    nextProps.refetch(JSON.parse(dataUser).id)
   }
 
-  componentDidMount() {
+   componentDidMount() {
      BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
-     this.props.refetch(this.props.UserId||'jdo7ks2s')
    }
 
    componentWillUnmount () {
@@ -55,7 +57,7 @@ class Invited extends Component<{}> {
    }
 
   _renderItem = ({item}) => {
-    return <CardEvent item={item} isHide={true} />
+    return <CardEvent item={item} />
   }
 
   handleScroll = (event) => {
@@ -63,7 +65,6 @@ class Invited extends Component<{}> {
   }
 
   render () {
-
     const {invitations, isFetching} = this.state
     const isEmpty = invitations.length === 0
     return(
@@ -139,7 +140,8 @@ const Invitations = gql `
       members {
         id
         firstName
-        profilePicture,
+        profilePicture
+        email
         role {
           id
           name
@@ -151,7 +153,7 @@ const Invitations = gql `
 `;
 
 export default graphql(Invitations, {
-  options : (ownProps) => ({ variables: { UserId: ownProps.UserId || 'jdo7ks2s'} }),
+  options : (ownProps) => ({ variables: { UserId: ownProps.UserId || ''} }),
   props: ({ data, ownProps }) => ({
     refetch: (UserId) => {
       data.refetch({ UserId })
@@ -159,7 +161,7 @@ export default graphql(Invitations, {
     data,
     ...ownProps
   })
-})(Invited);
+})(Invited)
 
 // export default Home
 const styles = StyleSheet.create({
