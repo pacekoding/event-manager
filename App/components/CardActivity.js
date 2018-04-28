@@ -30,7 +30,7 @@ const CardActivity = ({item,index,parent}) => {
     user,
     description,
     verified,
-    incomeExpenseDate
+    createdAt
   } = item
   console.log('item',item);
   const {
@@ -155,7 +155,7 @@ const CardActivity = ({item,index,parent}) => {
             type='material-community'
             color='#616161'
             />
-          <Text style={styles.dataText}>{moment(incomeExpenseDate).format('LL')}</Text>
+          <Text style={styles.dataText}>{moment(createdAt).format('LL')}</Text>
         </View>
       </View>
     </View>

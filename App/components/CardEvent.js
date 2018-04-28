@@ -23,10 +23,11 @@ const imageHeight = width - width * 0.1
 
 class CardEvent extends Component<> {
 
-    constructor () {
+    constructor (props) {
+      console.log('propsss',props);
       super()
       this.state = {
-        eventdateText: moment(new Date()).format('L'),
+        eventdateText: moment(props.eventDate).format('L'),
         dueDateColor: '#9E9E9E',
         isHide: true,
         id: '',

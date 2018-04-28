@@ -143,7 +143,7 @@ class EditEvent extends Component<{}> {
       path,
       eventDate
     }
-    console.log('test123',edit_event);
+    
     const res = await editData({ edit_event })
     Actions.event({ type: 'replace', UserId })
   }
