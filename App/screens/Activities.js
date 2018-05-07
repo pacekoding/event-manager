@@ -38,7 +38,7 @@ class Activities extends Component<{}> {
       isFetching: true,
       sIndex: 0,
       isOpen: false,
-      editable: false
+      editable: true
     }
   }
 
@@ -63,12 +63,11 @@ class Activities extends Component<{}> {
     const incomeExpense = await AsyncStorage.getItem('incomeExpense')
     const management = await AsyncStorage.getItem('management')
     const dataUser = await AsyncStorage.getItem('dataUser')
-
     const bendahara = JSON.parse(management).members.filter(member => (member.role.id == 2))[0]
-    const editable = JSON.parse(dataUser).email === bendahara.email
+    const editable = (bendahara ? JSON.parse(dataUser).email === bendahara.email : true)
     this.setState({
       activities: JSON.parse(incomeExpense),
-      editable,
+      editable:true,
       isFetching: false,
     })
   }

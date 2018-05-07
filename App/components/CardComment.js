@@ -13,18 +13,18 @@ import { Icon } from 'react-native-elements'
 const CardComment = ({item}) => {
   return(
     <View style={styles.container}>
-      <Image style={styles.picture} source={{uri: item.user.profilePicture}}></Image>
+      <Image style={styles.picture} source={{uri: item && item.user && item.user.profilePicture}}></Image>
       <View style={styles.textContainer}>
-        <Text style={styles.commentText}>{item.content}</Text>
+        <Text style={styles.commentText}>{ item && item.content }</Text>
         <View style={styles.metaContainer}>
-          <Text style={styles.metaText}>{item.user.firstName}</Text>
+          <Text style={styles.metaText}>{ item && item.user && item.user.firstName}</Text>
           <Icon
             name='circle'
             type='material-community'
             color='#9E9E9E'
             size={4}
           />
-          <Text style={styles.metaText}>{moment(item.createdAt).format('LLL')}</Text>
+          <Text style={styles.metaText}>{moment(item && item.createdAt).format('LLL')}</Text>
         </View>
       </View>
     </View>

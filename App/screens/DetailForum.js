@@ -7,7 +7,10 @@ import {
   Image,
   ScrollView,
   TextInput,
-  BackHandler
+  BackHandler,
+  AsyncStorage,
+  TouchableOpacity,
+  Keyboard
 } from 'react-native'
 import { Icon } from 'react-native-elements'
 import { OptimizedFlatList } from 'react-native-optimized-flatlist'
@@ -27,19 +30,24 @@ class DetailForum extends Component<{}> {
   constructor (props) {
     super()
     this.state = {
+      messages:[],
       detailForum: {},
       comment: '',
-      isFetching: true
+      isFetching: true,
+      dataUser:{},
     }
+    this.handleAdd = this.handleAdd.bind(this)
   }
 
   componentWillUnmount () {
     BackHandler.removeEventListener('hardwareBackPress', this.backNavigation)
   }
 
-  componentDidMount () {
+  async componentDidMount () {
+    const dataUser = await AsyncStorage.getItem('dataUser')
+    this.setState({dataUser:JSON.parse(dataUser)})
     BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
-    this.setState({isFetching: false})
+    this.setState({isFetching: false, messages: this.props.detailForum.messages})
   }
 
   backNavigation = () => {
@@ -48,10 +56,35 @@ class DetailForum extends Component<{}> {
   }
 
   _renderItem = ({item}) => {
+
     return <CardComment item={item} />
   }
 
-  onChangeComment = description => this.setState({ description })
+  onChangeComment = comment => this.setState({ comment })
+
+  handleAdd = async () => {
+    Keyboard.dismiss()
+    const ForumId = this.props.detailForum.id
+    const {dataUser} = this.state
+    const UserId = dataUser.id
+
+    const { submit } = this.props
+
+    const new_comment = {
+      content: this.state.comment,
+      ForumId,
+      UserId
+    }
+    const comment= {
+      content: this.state.comment,
+      user: dataUser,
+      ForumId,
+      createdAt: new Date()
+    }
+    const messages = [...this.state.messages,comment]
+    this.setState({messages,comment: ''})
+    const res = await submit({ new_comment })
+  }
 
 
   render () {
@@ -64,9 +97,13 @@ class DetailForum extends Component<{}> {
       id,
       title,
       content,
-      messages,
+      // messages,
       createdAt
     } = detailForum
+
+    const isEmpty = this.state.comment === ''
+
+    const { messages } = this.state
 
     const totalComments = messages.length
     const dateText = moment(createdAt).format('LL')
@@ -116,7 +153,7 @@ class DetailForum extends Component<{}> {
         </View>
         </ScrollView>
         <View style={styles.commentBox}>
-          <Image style={styles.picture} source={{uri:'https://3.bp.blogspot.com/-vn5bT6EWO6E/VzB0hEtSrII/AAAAAAAACJ8/5GBuFRo6ImM-BCeD3z9XWejA45Y5ZmLVgCLcB/s1600/Beyonce-no-gravity-mp3-download.jpg'}}></Image>
+          <Image style={styles.picture} source={{uri:this.state.dataUser.profilePicture}}></Image>
           <TextInput
             ref='comment'
             placeholder='Comment...'
@@ -125,23 +162,53 @@ class DetailForum extends Component<{}> {
             multiline
             numberOfLines={3}
             name={'comment'}
+            value={this.state.comment}
             onChangeText={this.onChangeComment}
             underlineColorAndroid='transparent'
             style={styles.textInputDescription} />
-          <View style={styles.boxSend}>
+          <TouchableOpacity onPress={this.handleAdd}
+            disabled={isEmpty}
+            style={[styles.boxSend,{backgroundColor: isEmpty ? '#BDBDBD' : '#2979FF'}]}>
             <Icon
-              name='send'
-              type='material-community'
-              color='#FFFFFF'/>
-          </View>
+                name='send'
+                type='material-community'
+                color='#FFFFFF'/>
+          </TouchableOpacity>
         </View>
       </View>
     )
   }
 }
 
-export default DetailForum
+const AddMutation = gql`
+  mutation addEvent($new_comment: MessageObject!) {
+    addMessage(message: $new_comment) {
+      ok
+      errors {
+        message
+      }
+      message {
+        content,
+        user {
+          id
+          firstName
+          lastName
+          profilePicture
+        },
+        ForumId,
+        createdAt
+      }
+    }
+  }
+`;
 
+export default graphql(AddMutation, {
+  props: ({mutate}) => ({
+    submit: (new_comment) => mutate({
+      variables: { ...new_comment }
+    })
+  })
+})(DetailForum)
 
 
 const styles = StyleSheet.create({
@@ -244,7 +311,6 @@ const styles = StyleSheet.create({
     color: '#212121',
   },
   boxSend: {
-    backgroundColor: '#2979FF',
     width: 50,
     height: 50,
     justifyContent: 'center'

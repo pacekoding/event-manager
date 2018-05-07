@@ -42,7 +42,7 @@ class Home extends Component<{}> {
 
   componentDidMount() {
      BackHandler.addEventListener('hardwareBackPress', this.backNavigation)
-     this.props.refetch(this.props.UserId)
+     // this.props.refetch(this.props.UserId)
    }
 
    componentWillUnmount () {

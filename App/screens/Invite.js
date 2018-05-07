@@ -37,6 +37,7 @@ class Invited extends Component<{}> {
   }
 
   async componentWillReceiveProps(nextProps) {
+    console.log('nextProps',nextProps);
     if(nextProps.data.invitations) this.setState({invitations:nextProps.data.invitations, isFetching: false})
 
     const dataUser = await AsyncStorage.getItem('dataUser')
@@ -65,7 +66,9 @@ class Invited extends Component<{}> {
   }
 
   render () {
+
     const {invitations, isFetching} = this.state
+      console.log('invitations',invitations);
     const isEmpty = invitations.length === 0
     return(
       <View style={styles.container}>

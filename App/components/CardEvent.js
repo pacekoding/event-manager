@@ -24,12 +24,10 @@ const imageHeight = width - width * 0.1
 class CardEvent extends Component<> {
 
     constructor (props) {
-      console.log('propsss',props);
       super()
       this.state = {
         eventdateText: moment(props.eventDate).format('L'),
         dueDateColor: '#9E9E9E',
-        isHide: true,
         id: '',
         title: '',
         pictures: '',
@@ -39,21 +37,10 @@ class CardEvent extends Component<> {
     }
 
     async componentDidMount(){
-
       const { id, title, pictures, content, eventDate,management } = this.props.item
       const eventdateText = moment(eventDate).format('L')
       const dueDateColor = '#9E9E9E'
-
-      let dataUser = await AsyncStorage.getItem('dataUser')
-      const bendahara = management.members.filter(member => (member.role.id == 2))
-      let isHide = ''
-      if (this.props.nav)
-        isHide = false
-      else
-        isHide = !(JSON.parse(dataUser).email === bendahara[0].email)
-
       this.setState({
-        isHide,
         eventdateText,
         dueDateColor,
         id,
@@ -78,6 +65,7 @@ class CardEvent extends Component<> {
     }
 
     handleManagement = () => {
+
       const { item } = this.props
       AsyncStorage.setItem('detailEvent',JSON.stringify(item))
       AsyncStorage.setItem('incomeExpense',JSON.stringify(item.incomeExpense))
@@ -96,7 +84,6 @@ class CardEvent extends Component<> {
         eventDate,
         eventdateText,
         dueDateColor,
-        isHide
       } = this.state
 
       return(
@@ -104,7 +91,6 @@ class CardEvent extends Component<> {
 
           <View style={styles.swiperContainer}>
             {
-              !isHide &&
               <Icon
               containerStyle={styles.dateIcon}
               raised
@@ -166,12 +152,9 @@ class CardEvent extends Component<> {
             <TouchableOpacity style={styles.optionContainer} onPress={this.handleForum} >
               <Text style={[styles.optionText,{color: '#2962FF'}]}>Forum</Text>
             </TouchableOpacity>
-            {
-              !isHide &&
-              <TouchableOpacity style={styles.optionContainer} onPress={this.handleManagement} >
-                <Text style={[styles.optionText,{color: '#00C853'}]}>Management</Text>
-              </TouchableOpacity>
-            }
+            <TouchableOpacity style={styles.optionContainer} onPress={this.handleManagement} >
+              <Text style={[styles.optionText,{color: '#00C853'}]}>Management</Text>
+            </TouchableOpacity>
           </View>
         </View>
       )
